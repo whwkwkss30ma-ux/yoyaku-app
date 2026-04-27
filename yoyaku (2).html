@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="予約メモ">
+<meta name="theme-color" content="#ffffff">
+<title>予約メモ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;background:#f7f7f7;font-size:16px}
+#app{max-width:520px;margin:0 auto;background:#fff;min-height:100vh;padding-bottom:80px}
+.tabs{display:flex;border-bottom:1px solid #ddd;background:#fff;position:sticky;top:0;z-index:10}
+.tab{flex:1;padding:8px 1px;font-size:11px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;font-family:inherit}
+.tab.active{color:#111;border-bottom:2px solid #111;font-weight:500}
+.tab-content{padding:12px}
+.facility-tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
+.ftab{flex:1;min-width:55px;padding:8px 4px;font-size:12px;cursor:pointer;border:1px solid #bbb;border-radius:8px;background:#ebebeb;color:#555;text-align:center;font-family:inherit;line-height:1.3}
+.ftab.aw{background:#ddeeff;border-color:#88aacc;color:#224466;font-weight:500}
+.ftab.th{background:#fff0d0;border-color:#EF9F27;color:#633806;font-weight:500}
+.ftab.bb{background:none;border-color:#bbb;color:#555;font-weight:500}
+.ftab.st{background:#ffe0e8;border-color:#d06080;color:#7a1030;font-weight:500}
+.ftab.al{background:#e0eeff;border-color:#88aacc;color:#224466;font-weight:500}
+.course-btns{display:flex;gap:6px;margin-bottom:12px}
+.cbtn{flex:1;padding:10px 6px;font-size:11px;cursor:pointer;border:1px solid #bbb;border-radius:8px;background:#ebebeb;color:#777;text-align:center;font-family:inherit;line-height:1.2}
+.cbtn.active{background:#ddeeff;border-color:#88aacc;color:#224466}
+.cbtn .mins{display:block;font-size:20px;font-weight:700;font-family:monospace;margin-top:1px;color:inherit}
+.time-display{font-size:20px;font-weight:600;margin:10px 0;color:#111}
+label{font-size:13px;color:#666;display:block;margin-bottom:4px;margin-top:8px}
+input[type=text],input[type=number],input[type=time],textarea{width:100%;padding:10px;font-size:15px;border:1px solid #ccc;border-radius:8px;font-family:inherit;background:#fff;color:#111;-webkit-appearance:none}
+input[type=date]{width:100%;padding:10px;font-size:15px;border:1px solid #ccc;border-radius:8px;font-family:inherit;background:#fff;color:#111;-webkit-appearance:none}
+input[type=date]::-webkit-datetime-edit-week-field{display:none}
+input[type=date]::-webkit-datetime-edit-fields-wrapper:has(+ ::-webkit-datetime-edit-week-field){display:none}
+/* Braveで曜日フィールドが空の()として表示される問題を抑制 */
+input[type=date]::-webkit-datetime-edit-text:last-child{display:none}
+input[type=date]::-webkit-datetime-edit-text:first-child{display:none}
+.date-wrap{width:100%}
+.date-disp{font-size:14px;font-weight:600;color:#224466;padding:4px 2px;min-height:22px}
+.link-check-list{background:#f9f9f9;border:1px solid #ddd;border-radius:8px;padding:6px 10px;margin-bottom:4px;max-height:160px;overflow-y:auto}
+.link-check-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #eee;font-size:13px}
+.link-check-item:last-child{border-bottom:none}
+.link-check-item input[type=checkbox]{width:20px;height:20px;flex-shrink:0;accent-color:#7a1030;cursor:pointer}
+.link-check-item label{flex:1;cursor:pointer;line-height:1.4}
+.date-disp-btn{width:100%;padding:10px;font-size:15px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#111;cursor:pointer;box-sizing:border-box;margin-bottom:2px;-webkit-tap-highlight-color:rgba(0,0,0,0.1)}
+select{width:100%;padding:10px;font-size:15px;font-weight:500;color:#111;background:#e0e0e0;border:1px solid #aaa;border-radius:8px;font-family:inherit;-webkit-appearance:none;appearance:none}
+textarea{resize:vertical;min-height:60px}
+.btn-primary{width:100%;padding:14px;background:#111;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;margin-top:8px;font-family:inherit}
+.btn-sm{padding:6px 10px;font-size:12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#555;font-family:inherit}
+.btn-danger{color:#c00;border-color:#fcc}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.card.done{opacity:0.45}
+.card-header{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.badge-walk{background:#ddeeff;color:#224466}
+.badge-tree{background:#fff0d0;color:#633806}
+.badge-bbq{background:#f5f5f5;color:#555}
+.badge-stay{background:#ffe0e8;color:#7a1030}
+.badge-done{background:#eee;color:#999}
+.badge-overlap{font-size:11px;font-weight:600;color:#c00;border:1px solid #c00;border-radius:20px;padding:2px 8px}
+.badge-changed{font-size:11px;font-weight:600;color:#c00;border:1px solid #c00;border-radius:20px;padding:2px 8px}
+.card-actions{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.card-time{font-size:20px;font-weight:600;margin-bottom:2px;color:#111}
+.card-name{font-size:15px;font-weight:500;color:#111;margin-bottom:4px}
+.card-meta{font-size:15px;color:#111;margin-bottom:2px}
+.card-total{font-size:15px;font-weight:600;color:#111;margin-top:6px}
+.separator{border:none;border-top:1px solid #eee;margin:12px 0}
+.price-box{background:#f0f0f0;border-radius:8px;padding:10px 14px;margin:10px 0}
+.price-unit{font-size:13px;color:#666}
+.price-total{font-size:16px;font-weight:600;color:#111;margin-top:2px}
+.section-title{font-size:13px;font-weight:500;color:#888;margin-bottom:8px;margin-top:4px}
+.field-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eee}
+.field-name{flex:1;font-size:14px}
+.field-type{font-size:12px;color:#aaa;font-family:monospace}
+.add-field-form{background:#f5f5f5;border-radius:8px;padding:14px;margin-top:12px}
+.empty{text-align:center;color:#bbb;font-size:14px;padding:3rem 0}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:flex-end;justify-content:center;overflow:hidden}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:90vh;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:14px}
+.modal-actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.rental-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #f0f0f0}
+.rental-item:last-child{border-bottom:none}
+.rental-check{width:22px;height:22px;cursor:pointer;flex-shrink:0;accent-color:#633806}
+.rental-label{flex:1;font-size:14px;color:#111;cursor:pointer}
+.rental-price{font-size:13px;color:#888;flex-shrink:0;min-width:52px;text-align:right}
+.r-stk-ok{font-size:11px;color:#888;flex-shrink:0;min-width:34px;text-align:right}
+.r-stk-ng{font-size:11px;color:#c00;font-weight:600;flex-shrink:0;min-width:34px;text-align:right}
+.rental-qty{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.rental-qty button{width:28px;height:28px;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:16px;cursor:pointer;color:#111;font-family:inherit;padding:0;line-height:1}
+.rental-qty span{font-size:15px;font-weight:600;min-width:20px;text-align:center;color:#111}
+.rental-summary{background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px 14px;margin-top:8px}
+.rental-sum-row{font-size:13px;color:#633806;margin-bottom:2px}
+.rental-sum-total{font-size:16px;font-weight:700;color:#633806;margin-top:6px}
+.free-item{font-size:12px;color:#085041;background:#d8f5eb;border-radius:6px;padding:3px 8px;margin-right:4px;margin-bottom:4px;display:inline-block}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a7a3a;color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.stock-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #eee;font-size:14px}
+.stock-row:last-child{border-bottom:none}
+.stock-name{flex:1;font-size:13px}
+.stock-input{width:56px;padding:4px 8px;font-size:14px;border:1px solid #ccc;border-radius:6px;text-align:center;font-family:inherit}
+.handover-box{background:#fff0f4;border:1px solid #d06080;border-radius:8px;padding:12px;margin-top:8px}
+.cal-cell{border-radius:4px;padding:3px 2px;text-align:center;cursor:pointer;font-size:13px;min-height:80px;display:flex;flex-direction:column;align-items:stretch;gap:1px}
+.cal-cell:active{opacity:0.7}
+.cal-day{font-size:13px;font-weight:500}
+.cal-dot-d{width:6px;height:6px;border-radius:50%;background:#88aacc}
+.cal-dot-s{width:6px;height:6px;border-radius:50%;background:#d06080}
+.cal-today .cal-day{background:#111;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.cal-selected{background:#fff0f4;border:1px solid #d06080}
+.cal-head{font-size:12px;font-weight:600;text-align:center;color:#888;padding:4px 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('list')">一覧</button>
+    <button class="tab" onclick="switchTab('stay')">宿泊</button>
+    <button class="tab" onclick="switchTab('day')">日帰り</button>
+    <button class="tab" onclick="switchTab('cal')">📅カレンダー</button>
+    <button class="tab" onclick="switchTab('settings')">設定</button>
+  </div>
+
+  <div id="tab-list" class="tab-content">
+    <div id="date-filter-bar" style="display:none;align-items:center;gap:8px;background:#fff0f4;border:1px solid #d06080;border-radius:8px;padding:8px 12px;margin-bottom:10px"><span style="font-size:14px;font-weight:600;color:#7a1030;flex:1" id="date-filter-label"></span><button class="btn-sm" onclick="clearDateFilter()" style="color:#c00;border-color:#fcc;white-space:nowrap">✕ 絞り込み解除</button></div>
+    <div class="facility-tabs" id="flt-tabs"></div>
+    <div id="list-container"></div>
+  </div>
+
+  <div id="tab-day" class="tab-content" style="display:none">
+    <div class="facility-tabs" id="fadd-tabs"></div>
+    <div id="course-section"></div>
+    <label>予約日</label>
+    <input type="date" id="day-date" oninput="updDayDateDisp()" onchange="updDayDateDisp()" onfocus="startDatePoll('day-date',updDayDateDisp)" onblur="stopDatePoll()">
+    <div id="day-date-disp" class="date-disp"></div>
+    <label>予約サイト・年間パス</label>
+    <select id="day-source" onchange="onDaySourceChange()">
+      <option value="">直接予約</option>
+      <option value="rakuten">楽天トラベル</option>
+      <option value="jalan">じゃらん</option>
+      <option value="sou">SOUエクスペリエンス</option>
+      <option value="other1" id="day-src-opt-other1">外部サイト①</option>
+      <option value="other2" id="day-src-opt-other2">外部サイト②</option>
+      <option value="other3" id="day-src-opt-other3">外部サイト③</option>
+      <option value="pass_day">年間パス（昼）</option>
+      <option value="pass_night">年間パス（夜）</option>
+    </select>
+    <label>開始時刻</label>
+    <input type="time" id="start-time" oninput="calcTime()" value="10:00">
+    <div class="time-display" id="time-display"></div>
+    <label>予約者名</label>
+    <input type="text" id="add-name" placeholder="予約者名を入力">
+    <div class="separator"></div>
+    <label>人数</label>
+    <input type="number" id="add-ninzu" min="1" placeholder="人数を入力" oninput="calcTime()">
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;background:#fff;border:1px solid #ddd;border-radius:8px">
+      <input type="checkbox" id="day-mura" style="width:22px;height:22px;cursor:pointer;flex-shrink:0" onchange="calcTime()">
+      <label for="day-mura" style="font-size:14px;font-weight:600;color:#111;cursor:pointer">村内　（空中ウォーク・ツリーハウス昼：半額／BBQ・レンタル：無料）</label>
+    </div>
+    <div id="bbq-rental-section" style="display:none">
+      <div class="separator"></div>
+      <div style="font-size:14px;font-weight:600;color:#633806;margin-bottom:4px">備品レンタル</div>
+      <div id="rental-items-form"></div>
+      <div id="rental-summary-form" class="rental-summary" style="display:none;margin-top:8px"></div>
+    </div>
+    <div class="price-box">
+      <div class="price-unit" id="price-unit-text"></div>
+      <div class="price-total" id="price-total-text"></div>
+    </div>
+    <div id="custom-fields-add"></div>
+    <label>宿泊予約との紐づけ</label>
+    <div id="day-staylink" class="link-check-list"></div>
+    <label>日帰り予約との紐づけ</label>
+    <div id="day-daylink" class="link-check-list"></div>
+    <button class="btn-primary" onclick="saveReservation()">保存</button>
+  </div>
+
+  <div id="tab-stay" class="tab-content" style="display:none">
+    <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:#7a1030">宿泊予約</div>
+    <label>施設</label>
+    <select id="stay-facility" onchange="onStayFacilityChange()"><option value="">選択してください</option></select>
+    <div id="stay-fac-info" style="font-size:12px;color:#666;margin-top:4px;line-height:1.6"></div>
+    <label>予約サイト・年間パス</label>
+    <select id="stay-source" onchange="onSourceChange()">
+      <option value="">直接予約</option>
+      <option value="rakuten">楽天トラベル</option>
+      <option value="jalan">じゃらん</option>
+      <option value="sou">SOUエクスペリエンス</option>
+      <option value="other1" id="src-opt-other1">外部サイト①</option>
+      <option value="other2" id="src-opt-other2">外部サイト②</option>
+      <option value="other3" id="src-opt-other3">外部サイト③</option>
+      <option value="pass_day">年間パス（昼）</option>
+      <option value="pass_night">年間パス（夜）</option>
+    </select>
+    <label>チェックイン日</label>
+    <input type="date" id="stay-checkin" oninput="calcStay();updDayLink();updStayCheckinDisp()" onchange="calcStay();updDayLink();updStayCheckinDisp()" onfocus="startDatePoll('stay-checkin',function(){calcStay();updDayLink();updStayCheckinDisp();})" onblur="stopDatePoll()">
+    <div id="stay-checkin-disp" class="date-disp"></div>
+    <label>泊数</label>
+    <input type="number" id="stay-nights" min="1" value="1" oninput="calcStay()">
+    <div class="time-display" id="stay-date-disp" style="font-size:16px;margin:8px 0"></div>
+    <label>予約者名</label>
+    <input type="text" id="stay-name" placeholder="予約者名を入力">
+    <div class="separator"></div>
+    <label>大人人数</label>
+    <input type="number" id="stay-ninzu" min="1" placeholder="大人人数" oninput="calcStay()">
+    <label>子供人数（3歳未満・料金無料）</label>
+    <input type="number" id="stay-child" min="0" placeholder="0" oninput="calcStay()">
+    <div id="cap-warn" style="font-size:12px;color:#c00;margin-top:4px;display:none"></div>
+    <label>ベッド配置</label>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:10px;background:#fff;border:1px solid #ddd;border-radius:8px;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="bed-ww" style="width:22px;height:22px;cursor:pointer;flex-shrink:0" onchange="onBedChange('ww')">
+        <label for="bed-ww" style="font-size:14px;color:#111;cursor:pointer">Wベッド×2</label>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="bed-ws" style="width:22px;height:22px;cursor:pointer;flex-shrink:0" onchange="onBedChange('ws')">
+        <label for="bed-ws" style="font-size:14px;color:#111;cursor:pointer">Wベッド×1、ソファ×1</label>
+      </div>
+    </div>
+    <label>ペット</label>
+    <select id="stay-pet" onchange="calcStay()">
+      <option value="0">なし</option>
+      <option value="1">1匹（＋3,000円/泊）</option>
+      <option value="2">2匹（＋6,000円/泊）</option>
+      <option value="3">3匹（＋9,000円/泊）</option>
+    </select>
+    <div id="pet-warn" style="font-size:12px;color:#c00;margin-top:4px;display:none"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;background:#fff;border:1px solid #ddd;border-radius:8px">
+      <input type="checkbox" id="stay-mura" style="width:22px;height:22px;cursor:pointer;flex-shrink:0" onchange="calcStay()">
+      <label for="stay-mura" style="font-size:14px;font-weight:600;color:#111;cursor:pointer">村内　（宿泊料金：半額／レンタル：無料）</label>
+    </div>
+    <div id="stay-free-items" style="margin:6px 0"></div>
+    <label>同日の日帰り予約との紐づけ</label>
+    <div id="stay-daylink" class="link-check-list"></div>
+    <div class="separator"></div>
+    <div style="font-size:14px;font-weight:600;color:#633806;margin-bottom:4px">備品レンタル</div>
+    <div id="stay-rental-form"></div>
+    <div id="stay-rental-summary" class="rental-summary" style="display:none;margin-top:8px"></div>
+    <div class="price-box">
+      <div class="price-unit" id="stay-price-unit"></div>
+      <div class="price-total" id="stay-price-total"></div>
+    </div>
+    <label>メモ</label>
+    <textarea id="stay-memo" placeholder="メモ"></textarea>
+    <button class="btn-primary" onclick="saveStay()">保存</button>
+  </div>
+
+  <div id="tab-cal" class="tab-content" style="display:none;padding:4px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:0 4px">
+      <button class="btn-sm" onclick="calPrev()">＜</button>
+      <div id="cal-title" style="flex:1;text-align:center;font-size:16px;font-weight:600"></div>
+      <button class="btn-sm" onclick="calNext()">＞</button>
+    </div>
+    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:8px"></div>
+    <div id="cal-detail" style="padding:0 4px;margin-top:4px"></div>
+  </div>
+
+  <div id="tab-settings" class="tab-content" style="display:none">
+    <div class="section-title">カスタム項目（日帰り）</div>
+    <div id="fields-list"></div>
+    <div class="add-field-form">
+      <div style="font-size:14px;font-weight:500;margin-bottom:8px">項目を追加</div>
+      <label>項目名</label><input type="text" id="new-field-name" placeholder="例：場所">
+      <label>種類</label>
+      <select id="new-field-type" onchange="toggleOptInput()">
+        <option value="select3">選択式（3択）</option>
+        <option value="text">テキスト</option>
+        <option value="number">数字</option>
+        <option value="memo">メモ</option>
+      </select>
+      <div id="new-select-options" style="display:none">
+        <label>選択肢（カンマ区切り）</label>
+        <input type="text" id="new-options-input" placeholder="例：A,B,C">
+      </div>
+      <button class="btn-primary" onclick="addField()">追加</button>
+    </div>
+    <div class="separator"></div>
+    <div class="section-title">外部予約サイト名</div>
+    <label>外部サイト①</label><input type="text" id="sn-1" placeholder="例：Airbnb">
+    <label>外部サイト②</label><input type="text" id="sn-2">
+    <label>外部サイト③</label><input type="text" id="sn-3">
+    <button class="btn-primary" onclick="saveSourceNames()">保存</button>
+    <div class="separator"></div>
+    <div class="section-title">備品在庫数</div>
+    <div id="stock-list"></div>
+    <button class="btn-primary" onclick="saveStock()">在庫を保存</button>
+    <div class="separator"></div>
+    <div class="section-title">📊 Googleスプレッドシート同期</div>
+    <div style="background:#f0f6ff;border:1px solid #88aacc;border-radius:8px;padding:12px;margin-top:4px">
+      <div style="font-size:12px;color:#224466;margin-bottom:8px;line-height:1.6">
+        GAS WebアプリのURLを設定してからスプレッドシートへ同期できます。
+      </div>
+      <label>GAS WebアプリURL</label>
+      <input type="text" id="gas-url" placeholder="https://script.google.com/macros/s/..." style="font-size:13px">
+      <button class="btn-primary" onclick="saveGasUrl()" style="background:#224466;margin-top:6px;margin-bottom:8px">URLを保存</button>
+      <button class="btn-primary" onclick="syncToSheet()" style="background:#1a7a3a">📊 スプレッドシートへ同期</button>
+      <div id="sync-status" style="font-size:12px;color:#555;margin-top:6px"></div>
+    </div>
+    <div class="separator"></div>
+    <div class="section-title">新チャットへの引き継ぎ</div>
+    <div class="handover-box">
+      <div style="font-size:13px;color:#4a2080;font-weight:500;margin-bottom:6px">📋 引き継ぎ手順</div>
+      <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:8px">
+        ① 「引き継ぎ文をコピー」を押す<br>
+        ② 新しいClaudeチャットを開く<br>
+        ③ コピーした内容を貼り付けて送信<br>
+        ④ 現在のyoyaku.htmlも添付する<br>
+        ⑤ 続きの要望を書く
+      </div>
+      <button class="btn-primary" style="background:#4a2080;margin-bottom:8px" onclick="copyHandover()">📋 引き継ぎ文をコピー</button>
+      <button class="btn-primary" style="background:#555" onclick="exportData()">予約データをバックアップ</button>
+      <div style="margin-top:10px">
+        <label>予約データをインポート</label>
+        <textarea id="import-text" placeholder="バックアップデータをここに貼り付け" style="min-height:60px;font-size:12px"></textarea>
+        <button class="btn-primary" onclick="importData()">インポート</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-height:auto;padding:24px 20px">
+    <div id="confirm-msg" style="font-size:16px;font-weight:500;margin-bottom:20px;text-align:center"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-sm" onclick="confirmCancel()" style="flex:1;padding:12px;font-size:14px">キャンセル</button>
+      <button class="btn-sm btn-danger" onclick="confirmOk()" style="flex:1;padding:12px;font-size:14px;background:#c00;color:#fff;border-color:#c00">削除する</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title" id="edit-modal-title">予約を編集</div>
+    <div id="edit-modal-content"></div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal()">キャンセル</button>
+      <button class="btn-sm" onclick="saveEdit()" style="background:#111;color:#fff;border-color:#111;padding:8px 20px">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FKEY='yv_f',RKEY='yv_r',STKEY='yv_st',SKKEY='yv_sk',SNKEY='yv_sn';
+
+const FACILITIES=[
+  {id:'walk',label:'空中ウォーク',cls:'aw',badgeCls:'badge-walk',
+   courses:[{min:55,minLabel:'55分'},{min:115,minLabel:'115分'},{min:0,minLabel:'終日'}],
+   prices:{55:2000,115:2500,0:3000},close:'17:00',priceUnit:'人',fixedCount:false},
+  {id:'tree',label:'ツリーハウス',cls:'th',badgeCls:'badge-tree',
+   courses:[{min:55,minLabel:'55分'},{min:115,minLabel:'115分'},{min:0,minLabel:'終日'}],
+   prices:{55:2000,115:3000,0:4000},close:'16:00',priceUnit:'人',fixedCount:false},
+  {id:'bbq',label:'BBQスペース',cls:'bb',badgeCls:'badge-bbq',
+   courses:[{min:0,minLabel:'終日'}],
+   prices:{0:3000},close:'15:00',fixedEnd:'15:00',priceUnit:'か所',fixedCount:true,note:'受付14時まで'}
+];
+
+const STAY_FACS=[
+  {id:'st_th', label:'ツリーハウス',      group:'ツリーハウス',   maxA:4,maxT:5,pet:'可',          ci:'16:30〜18:00',co:'9:30',    bat:'large',prices:{1:14000,2:12000,3:10000,4:8000}},
+  {id:'st_dm', label:'ドーム（ミラー）',  group:'透明ドーム',     maxA:4,maxT:5,pet:'不可',        ci:'14:00〜16:00',co:'翌10:00', bat:'large',prices:{1:12000,2:10000,3:8000,4:7000}},
+  {id:'st_dt', label:'ドーム（透明）',    group:'透明ドーム',     maxA:4,maxT:5,pet:'ドーム内ケージ可',ci:'14:00〜16:00',co:'翌10:00',bat:'large',prices:{1:12000,2:10000,3:8000,4:7000}},
+  {id:'st_dg', label:'ドーム（グレー）',  group:'透明ドーム',     maxA:4,maxT:5,pet:'不可',        ci:'14:00〜16:00',co:'翌10:00', bat:'large',prices:{1:12000,2:10000,3:8000,4:7000}},
+  {id:'st_t1', label:'テント①オレンジ',  group:'空中テント',     maxA:2,maxT:3,pet:'不可',        ci:'14:00〜16:00',co:'翌10:00', bat:'small',prices:{1:9000,2:7000}},
+  {id:'st_t2', label:'テント②ホワイト',  group:'空中テント',     maxA:2,maxT:3,pet:'不可',        ci:'14:00〜16:00',co:'翌10:00', bat:'small',prices:{1:9000,2:7000}},
+  {id:'st_t3', label:'テント③ベージュ',  group:'空中テント',     maxA:2,maxT:3,pet:'不可',        ci:'14:00〜16:00',co:'翌10:00', bat:'small',prices:{1:9000,2:7000}},
+  {id:'st_h1a',label:'①ハンモック大',    group:'空中ハンモック', maxA:3,maxT:5,pet:'ケージ可',    ci:'14:00〜16:00',co:'翌10:00', bat:'small',prices:{1:6000,2:5000,3:4000,4:4000,5:4000}},
+  {id:'st_h1b',label:'①ハンモック小',    group:'空中ハンモック', maxA:2,maxT:5,pet:'ケージ可',    ci:'14:00〜16:00',co:'翌10:00', bat:'small',prices:{1:6000,2:5000}},
+  {id:'st_h2a',label:'②ハンモック大',    group:'空中ハンモック', maxA:3,maxT:5,pet:'ケージ可',    ci:'14:00〜16:00',co:'翌10:00', bat:'small',prices:{1:6000,2:5000,3:4000,4:4000,5:4000}},
+  {id:'st_h2b',label:'②ハンモック小',    group:'空中ハンモック', maxA:2,maxT:5,pet:'ケージ可',    ci:'14:00〜16:00',co:'翌10:00', bat:'small',prices:{1:6000,2:5000}},
+];
+
+const SRC_BASE={rakuten:'楽天トラベル',jalan:'じゃらん',sou:'SOUエクスペリエンス',other1:'外部サイト①',other2:'外部サイト②',other3:'外部サイト③',pass_day:'年間パス（昼）',pass_night:'年間パス（夜）'};
+
+const ALL_ITEMS=[
+  {id:'b01',name:'焚火台セット',price:1500,defStock:7},
+  {id:'b03',name:'ローテーブル',price:600,defStock:4},
+  {id:'b04',name:'チェア・ベンチ',price:500,defStock:5},
+  {id:'b02',name:'スキレット＋鍋',price:500,defStock:6},
+  {id:'b05',name:'木炭 2kg',price:500,defStock:5},
+  {id:'b06',name:'ガスコンロ＋ガス',price:900,defStock:3},
+  {id:'b06b',name:'バーナー',price:1200,defStock:1},
+  {id:'b06c',name:'マッチ 1箱',price:200,defStock:5},
+  {id:'b06d',name:'ランタン',price:500,defStock:5},
+  {id:'b07',name:'薪割りセット',price:800,defStock:1},
+  {id:'b08',name:'コーヒーセット',price:1500,defStock:1},
+  {id:'b16',name:'寝袋（夏用）',price:1000,defStock:10},
+  {id:'b17',name:'寝袋（冬用）',price:1000,defStock:2},
+  {id:'b15',name:'天体望遠鏡',price:1500,defStock:2},
+  {id:'b13',name:'ポータブル電源（大）',price:1400,defStock:3,col:true},
+  {id:'b14',name:'ポータブル電源（小）',price:900,defStock:4,col:true},
+  {id:'b12',name:'ケトル',price:500,defStock:5,col:true},
+  {id:'b12b',name:'飯ごう',price:500,defStock:5,col:true},
+  {id:'b12c',name:'ホットサンドクッカー',price:400,defStock:2,col:true},
+  {id:'b12d',name:'カイト（凧）',price:500,defStock:5,col:true},
+  {id:'b09',name:'火起こし器',price:600,defStock:1,col:true},
+  {id:'b10',name:'カート',price:600,defStock:5,col:true},
+  {id:'b11',name:'BBQ焼き網',price:70,defStock:5,col:true},
+];
+
+const DEFAULT_FIELDS=[{id:'f_memo',name:'メモ',type:'memo',options:[]}];
+function ld(k){try{return JSON.parse(localStorage.getItem(k))}catch{return null}}
+function sv(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function loadFields(){const d=ld(FKEY);return Array.isArray(d)?d:DEFAULT_FIELDS}
+function loadReservations(){const d=ld(RKEY);return Array.isArray(d)?d:[]}
+function loadStays(){const d=ld(STKEY);return Array.isArray(d)?d:[]}
+function loadStock(){const d=ld(SKKEY);if(d&&typeof d==='object')return d;const o={};ALL_ITEMS.forEach(i=>o[i.id]=i.defStock);return o;}
+function loadSN(){const d=ld(SNKEY);return d||{}}
+
+let fields=loadFields(),reservations=loadReservations(),stays=loadStays(),stock=loadStock(),sn=loadSN();
+let facFilter='all',addFacId='walk',addCourse=55,editId=null,editType='day';
+let rentalSt={},stayRentalSt={};
+let dateFilter=null;
+
+// Android対応：date inputの値変化をポーリングで検知
+let _pollTimer=null,_pollId=null,_pollCb=null,_pollLast='';
+function startDatePoll(id,cb){
+  stopDatePoll();
+  _pollId=id;_pollCb=cb;_pollLast=document.getElementById(id).value;
+  _pollTimer=setInterval(function(){
+    const v=document.getElementById(_pollId).value;
+    if(v!==_pollLast){_pollLast=v;_pollCb();}
+  },200);
+}
+function stopDatePoll(){if(_pollTimer){clearInterval(_pollTimer);_pollTimer=null;}}
+
+const getFac=id=>FACILITIES.find(f=>f.id===id);
+const getSFac=id=>STAY_FACS.find(f=>f.id===id);
+const getSrcLabel=k=>sn[k]||SRC_BASE[k]||k;
+
+function clearDateFilter(){dateFilter=null;renderList();}
+
+function showToast(msg,col){
+  const t=document.getElementById('toast');t.textContent=msg;t.style.background=col||'#1a7a3a';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function switchTab(t,keepDateFilter){
+  ['list','day','stay','cal','settings'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'':'none');
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['list','stay','day','cal','settings'][i]===t));
+  if(t==='list'){if(!keepDateFilter)dateFilter=null;renderList();}
+  if(t==='day'){setFac('walk');renderCFAdd();setToday('day-date');updDayStayLink();updDayDayLink();updDaySourceOpts();setTimeout(refreshDateDisps,0);}
+  if(t==='stay'){initStay();setTimeout(refreshDateDisps,0);}
+  if(t==='cal')initCal();
+  if(t==='settings'){renderSettings();renderStock();loadSNUI();loadGasUrl();}
+}
+
+function updDayDateDisp(){
+  const v=normDate(document.getElementById('day-date').value);
+  document.getElementById('day-date-disp').textContent=v?fmtDate(v):'日付未選択';
+  updDayStayLink();
+  updDayDayLink();
+}
+
+function updStayCheckinDisp(){
+  const v=normDate(document.getElementById('stay-checkin').value);
+  document.getElementById('stay-checkin-disp').textContent=v?fmtDate(v):'日付未選択';
+}
+
+function setToday(id){
+  const el=document.getElementById(id);
+  if(!el.value)el.value=new Date().toISOString().slice(0,10);
+  if(id==='day-date')updDayDateDisp();
+  if(id==='stay-checkin')updStayCheckinDisp();
+}
+
+// タブ切替時にdisp行を確実に更新（DOM生成後に実行）
+function refreshDateDisps(){
+  const dv=document.getElementById('day-date');
+  const sv2=document.getElementById('stay-checkin');
+  const dd=document.getElementById('day-date-disp');
+  const sd=document.getElementById('stay-checkin-disp');
+  if(dv&&dd)dd.textContent=dv.value?fmtDate(normDate(dv.value)):'';
+  if(sv2&&sd)sd.textContent=sv2.value?fmtDate(normDate(sv2.value)):'';
+}
+
+// フィルタータブ
+function renderFltTabs(){
+  const c=document.getElementById('flt-tabs');c.innerHTML='';
+  // 全て
+  const all=document.createElement('button');all.className='ftab'+(facFilter==='all'?' al':'');
+  all.textContent='全て';all.style.flex='0.5';all.onclick=()=>{facFilter='all';renderFltTabs();renderList();};c.appendChild(all);
+  // 宿泊
+  const sb=document.createElement('button');sb.className='ftab'+(facFilter==='stay'?' st':'');
+  sb.textContent='宿泊';sb.onclick=()=>{facFilter='stay';renderFltTabs();renderList();};c.appendChild(sb);
+  // 空中ウォーク
+  const walk=FACILITIES.find(f=>f.id==='walk');
+  const wb=document.createElement('button');wb.className='ftab'+(facFilter==='walk'?' aw':'');
+  wb.textContent='空中ウォーク';wb.onclick=()=>{facFilter='walk';renderFltTabs();renderList();};c.appendChild(wb);
+  // ツリーハウス（昼）
+  const tb=document.createElement('button');tb.className='ftab'+(facFilter==='tree'?' th':'');
+  tb.textContent='ツリーハウス（昼）';tb.onclick=()=>{facFilter='tree';renderFltTabs();renderList();};c.appendChild(tb);
+  // BBQ
+  const bb=document.createElement('button');bb.className='ftab'+(facFilter==='bbq'?' bb':'');
+  bb.textContent='BBQ';bb.onclick=()=>{facFilter='bbq';renderFltTabs();renderList();};c.appendChild(bb);
+}
+
+// 日帰りフォーム
+function renderFaddTabs(){
+  const c=document.getElementById('fadd-tabs');c.innerHTML='';
+  FACILITIES.forEach(f=>{
+    const b=document.createElement('button');b.className='ftab'+(addFacId===f.id?' '+f.cls:'');
+    b.textContent=f.label;b.onclick=()=>setFac(f.id);c.appendChild(b);
+  });
+}
+
+function setFac(id){
+  addFacId=id;const fac=getFac(id);addCourse=fac.courses[0].min;rentalSt={};
+  renderFaddTabs();renderCourseSection();
+  document.getElementById('bbq-rental-section').style.display=id==='bbq'?'':'none';
+  if(id==='bbq')renderRentalForm('rental-items-form','rental-summary-form',rentalSt);
+  calcTime();
+}
+
+function renderCourseSection(){
+  const fac=getFac(addFacId);const c=document.getElementById('course-section');
+  const filt=fac.courses.filter(x=>x.min!==0);
+  if(!filt.length){c.innerHTML='';return;}
+  c.innerHTML='<div class="course-btns" id="cbi"></div>';
+  filt.forEach(cr=>{
+    const b=document.createElement('button');b.className='cbtn'+(addCourse===cr.min?' active':'');
+    b.innerHTML='<span class="mins">'+cr.minLabel+'</span>';
+    b.onclick=()=>{addCourse=cr.min;renderCourseSection();calcTime();};
+    document.getElementById('cbi').appendChild(b);
+  });
+}
+
+function getEnd(st,course,facId){
+  const fac=getFac(facId);if(!fac)return'';
+  if(fac.fixedEnd)return fac.fixedEnd;
+  if(course===0)return fac.close;
+  const[h,m]=st.split(':').map(Number);const tot=h*60+m+course;
+  return String(Math.floor(tot/60)%24).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');
+}
+
+function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+function checkOverlap(st,course,excId){
+  const ns=toMin(st),ne=toMin(getEnd(st,course,'tree'));
+  return reservations.filter(r=>r.facility==='tree'&&r.id!==excId&&!r.done).some(r=>{
+    const s=toMin(r.startTime),e=toMin(getEnd(r.startTime,r.course,'tree'));return ns<e&&ne>s;
+  });
+}
+
+function calcRT(state){return ALL_ITEMS.reduce((s,i)=>{const x=state[i.id]||{};return s+(x.checked?i.price*(x.qty||1):0);},0);}
+
+function calcTime(){
+  const st=document.getElementById('start-time').value;
+  const fac=getFac(addFacId);const basePrice=fac.prices[addCourse];
+  const ninzu=parseInt(document.getElementById('add-ninzu').value)||0;
+  const mura=document.getElementById('day-mura')&&document.getElementById('day-mura').checked;
+  if(!st){document.getElementById('time-display').textContent='';return;}
+  const noteH=fac.note?'　<span style="font-size:12px;font-weight:400;color:#aaa">（'+fac.note+'）</span>':'';
+  const ovH=(addFacId==='tree'&&checkOverlap(st,addCourse,null))?'　<span style="font-size:13px;font-weight:600;color:#c00">重複</span>':'';
+  document.getElementById('time-display').innerHTML=st+' 〜 '+getEnd(st,addCourse,addFacId)+noteH+ovH;
+  // 村内：BBQ・レンタルは無料、空中ウォーク・ツリーハウスは半額
+  const price=mura?(fac.fixedCount?0:Math.floor(basePrice/2)):basePrice;
+  const rt=mura?0:calcRT(rentalSt);
+  if(mura){
+    document.getElementById('price-unit-text').textContent=basePrice.toLocaleString()+'円 → 村内割引';
+  }else{
+    document.getElementById('price-unit-text').textContent=basePrice.toLocaleString()+'円 / 1'+fac.priceUnit+(fac.note?'　（'+fac.note+'）':'');
+  }
+  if(fac.fixedCount){
+    document.getElementById('price-total-text').textContent=mura?'BBQ無料 / レンタル無料　合計　0円':(rt>0?'レンタル代 '+price.toLocaleString()+'円 ＋ 備品 '+rt.toLocaleString()+'円　合計 '+(price+rt).toLocaleString()+'円':'合計　'+price.toLocaleString()+'円');
+  }else if(ninzu>0){
+    document.getElementById('price-total-text').textContent=mura?'半額　合計　'+(price*ninzu).toLocaleString()+'円（'+ninzu+fac.priceUnit+'）':'合計　'+(price*ninzu).toLocaleString()+'円（'+ninzu+fac.priceUnit+'）';
+  }else document.getElementById('price-total-text').textContent='';
+}
+
+// 在庫
+function usedOnDate(itemId,date){
+  let u=0;
+  reservations.filter(r=>r.date===date).forEach(r=>{(r.rental||[]).forEach(ri=>{if(ri.id===itemId)u+=ri.qty;});});
+  stays.filter(s=>s.checkin===date).forEach(s=>{(s.rental||[]).forEach(ri=>{if(ri.id===itemId)u+=ri.qty;});});
+  return u;
+}
+function stockLeft(itemId,date){return(stock[itemId]||0)-(date?usedOnDate(itemId,date):0);}
+
+// 備品レンタル
+function makeRRow(item,pfx,state,date){
+  const s=state[item.id]||{checked:false,qty:1};
+  const left=stockLeft(item.id,date);
+  const sClass=left<=0?'r-stk-ng':'r-stk-ok';
+  const row=document.createElement('div');row.className='rental-item';
+  row.innerHTML=
+    '<input type="checkbox" class="rental-check" id="'+pfx+'_'+item.id+'"'+(s.checked?' checked':'')+'>'+
+    '<label for="'+pfx+'_'+item.id+'" class="rental-label">'+item.name+'</label>'+
+    '<span class="rental-price">'+item.price.toLocaleString()+'円</span>'+
+    '<span class="'+sClass+'">残'+left+'</span>'+
+    '<div class="rental-qty" id="'+pfx+'q_'+item.id+'" style="display:'+(s.checked?'flex':'none')+'">'+
+      '<button type="button" onclick="chgQty(\''+item.id+'\',-1,\''+pfx+'\')">－</button>'+
+      '<span id="'+pfx+'s_'+item.id+'">'+s.qty+'</span>'+
+      '<button type="button" onclick="chgQty(\''+item.id+'\',1,\''+pfx+'\')">＋</button>'+
+    '</div>';
+  row.querySelector('input').addEventListener('change',function(){
+    if(!state[item.id])state[item.id]={checked:false,qty:1};
+    state[item.id].checked=this.checked;
+    document.getElementById(pfx+'q_'+item.id).style.display=this.checked?'flex':'none';
+    updRSum(pfx,state);if(pfx==='rc')calcTime();else calcStay();
+  });
+  return row;
+}
+
+function renderRentalForm(fId,sId,state,date){
+  const pfx=fId==='rental-items-form'?'rc':'src';
+  const c=document.getElementById(fId);c.innerHTML='';
+  const main=ALL_ITEMS.filter(x=>!x.col),extra=ALL_ITEMS.filter(x=>x.col);
+  main.forEach(i=>c.appendChild(makeRRow(i,pfx,state,date)));
+  const tog=document.createElement('div');
+  tog.style.cssText='font-size:13px;color:#888;cursor:pointer;padding:8px 0;user-select:none';
+  tog.textContent='▶ その他の備品（'+extra.length+'点）';
+  c.appendChild(tog);
+  const ed=document.createElement('div');ed.style.display='none';
+  extra.forEach(i=>ed.appendChild(makeRRow(i,pfx,state,date)));
+  c.appendChild(ed);
+  tog.addEventListener('click',()=>{const o=ed.style.display!=='none';ed.style.display=o?'none':'';tog.textContent=(o?'▶':'▼')+' その他の備品（'+extra.length+'点）';});
+  updRSum(pfx,state);
+}
+
+function chgQty(id,delta,pfx){
+  const state=pfx==='rc'?rentalSt:stayRentalSt;
+  if(!state[id])state[id]={checked:true,qty:1};
+  state[id].qty=Math.max(1,(state[id].qty||1)+delta);
+  const el=document.getElementById(pfx+'s_'+id);if(el)el.textContent=state[id].qty;
+  updRSum(pfx,state);if(pfx==='rc')calcTime();else calcStay();
+}
+
+function updRSum(pfx,state){
+  const sId=pfx==='rc'?'rental-summary-form':'stay-rental-summary';
+  const sel=ALL_ITEMS.filter(i=>(state[i.id]||{}).checked);
+  const el=document.getElementById(sId);if(!el)return;
+  if(!sel.length){el.style.display='none';return;}
+  el.style.display='';
+  const tot=calcRT(state);
+  el.innerHTML=sel.map(i=>{const q=(state[i.id]||{qty:1}).qty;return '<div class="rental-sum-row">'+i.name+(q>1?' × '+q:'')+'　'+(i.price*q).toLocaleString()+'円</div>';}).join('')+'<div class="rental-sum-total">備品合計　'+tot.toLocaleString()+'円</div>';
+}
+
+function getRD(state){return ALL_ITEMS.filter(i=>(state[i.id]||{}).checked).map(i=>({id:i.id,name:i.name,price:i.price,qty:(state[i.id]||{qty:1}).qty}));}
+
+function onBedChange(val){
+  if(val==='ww'&&document.getElementById('bed-ww').checked)document.getElementById('bed-ws').checked=false;
+  if(val==='ws'&&document.getElementById('bed-ws').checked)document.getElementById('bed-ww').checked=false;
+}
+function esOnBedChange(val){
+  if(val==='ww'&&document.getElementById('es-bed-ww').checked)document.getElementById('es-bed-ws').checked=false;
+  if(val==='ws'&&document.getElementById('es-bed-ws').checked)document.getElementById('es-bed-ww').checked=false;
+}
+function getBedValue(){
+  if(document.getElementById('bed-ww')&&document.getElementById('bed-ww').checked)return'ww';
+  if(document.getElementById('bed-ws')&&document.getElementById('bed-ws').checked)return'ws';
+  return'';
+}
+function getEsBedValue(){
+  if(document.getElementById('es-bed-ww')&&document.getElementById('es-bed-ww').checked)return'ww';
+  if(document.getElementById('es-bed-ws')&&document.getElementById('es-bed-ws').checked)return'ws';
+  return'';
+}
+
+// 宿泊
+function initStay(){
+  const sel=document.getElementById('stay-facility');
+  sel.innerHTML='<option value="">選択してください</option>';
+  const groups=[...new Set(STAY_FACS.map(f=>f.group))];
+  groups.forEach(g=>{
+    const og=document.createElement('optgroup');og.label=g;
+    STAY_FACS.filter(f=>f.group===g).forEach(f=>{const op=document.createElement('option');op.value=f.id;op.textContent=f.label;og.appendChild(op);});
+    sel.appendChild(og);
+  });
+  updSrcOpts();stayRentalSt={};setToday('stay-checkin');updStayCheckinDisp();
+  const bww=document.getElementById('bed-ww');const bws=document.getElementById('bed-ws');
+  if(bww)bww.checked=false;if(bws)bws.checked=false;
+  renderRentalForm('stay-rental-form','stay-rental-summary',stayRentalSt);
+  updDayLink();calcStay();
+}
+
+function updSrcOpts(){
+  ['1','2','3'].forEach(n=>{const el=document.getElementById('src-opt-other'+n);if(el&&sn['other'+n])el.textContent=sn['other'+n];});
+}
+
+function onStayFacilityChange(){
+  const fid=document.getElementById('stay-facility').value;
+  const fac=getSFac(fid);
+  const fi=document.getElementById('stay-fac-info');
+  if(!fac){fi.innerHTML='';document.getElementById('stay-free-items').innerHTML='';return;}
+  fi.innerHTML='チェックイン: '+fac.ci+'　チェックアウト: '+fac.co+'　最大'+fac.maxT+'名　ペット: '+fac.pet;
+  const bLbl=fac.bat==='large'?'ポータブル電源（大）':'ポータブル電源（小）';
+  document.getElementById('stay-free-items').innerHTML='<span class="free-item">✓ '+bLbl+'（無料）</span><span class="free-item">✓ ランタン（無料）</span>';
+  // 最大人数をmax属性で制限
+  document.getElementById('stay-ninzu').max=fac.maxA;
+  document.getElementById('stay-child').max=fac.maxT;
+  chkCap();calcStay();
+}
+
+function onDaySourceChange(){
+  const src=document.getElementById('day-source').value;
+  // 予約サイト名をカスタムフィールドのメモに反映する必要はなし（saveReservationで保存）
+}
+
+function updDayStayLink(){
+  const c=document.getElementById('day-staylink');if(!c)return;
+  c.innerHTML='';
+  const dt=normDate(document.getElementById('day-date').value);
+  let list=stays;
+  if(dt){
+    const base=new Date(dt);
+    const dates=[-2,-1,0,1,2].map(d=>{const dx=new Date(base);dx.setDate(dx.getDate()+d);return dx.toISOString().slice(0,10);});
+    list=stays.filter(s=>!s.checkin||dates.some(d=>s.checkin<=d&&s.checkout>d));
+  }
+  if(!list.length){c.innerHTML='<div style="font-size:13px;color:#aaa;padding:6px 0">宿泊予約なし</div>';return;}
+  list.forEach(s=>{
+    const fac=getSFac(s.facility);if(!fac)return;
+    const srcL=s.source?'【'+getSrcLabel(s.source)+'】':'【直接予約】';
+    const id='dsl_'+s.id;
+    const row=document.createElement('div');row.className='link-check-item';
+    row.innerHTML='<input type="checkbox" id="'+id+'" value="'+s.id+'"><label for="'+id+'">'+fmtDate(s.checkin)+' '+fac.label+(s.name?' '+s.name:'')+' '+srcL+'</label>';
+    c.appendChild(row);
+  });
+}
+
+function getDayStayLinkIds(){
+  const c=document.getElementById('day-staylink');if(!c)return[];
+  return [...c.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
+}
+
+function updDayDayLink(excludeId){
+  const c=document.getElementById('day-daylink');if(!c)return;
+  c.innerHTML='';
+  const dt=normDate(document.getElementById('day-date').value);
+  let list=reservations.filter(r=>r.id!==excludeId);
+  if(dt){
+    const base=new Date(dt);
+    const dates=[-2,-1,0,1,2].map(d=>{const dx=new Date(base);dx.setDate(dx.getDate()+d);return dx.toISOString().slice(0,10);});
+    list=list.filter(r=>!r.date||dates.includes(r.date));
+  }
+  if(!list.length){c.innerHTML='<div style="font-size:13px;color:#aaa;padding:6px 0">他の日帰り予約なし</div>';return;}
+  list.forEach(r=>{
+    const fac=getFac(r.facility);if(!fac)return;
+    const srcL=r.source?'【'+getSrcLabel(r.source)+'】':'【直接予約】';
+    const id='ddl_'+r.id;
+    const row=document.createElement('div');row.className='link-check-item';
+    row.innerHTML='<input type="checkbox" id="'+id+'" value="'+r.id+'"><label for="'+id+'">'+(r.date?fmtDate(r.date)+' ':'')+fac.label+(r.name?' '+r.name:'')+(r.startTime?' '+r.startTime:'')+' '+srcL+'</label>';
+    c.appendChild(row);
+  });
+}
+
+function getDayDayLinkIds(){
+  const c=document.getElementById('day-daylink');if(!c)return[];
+  return [...c.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
+}
+
+function updDaySourceOpts(){
+  ['1','2','3'].forEach(n=>{
+    const el=document.getElementById('day-src-opt-other'+n);
+    if(el&&sn['other'+n])el.textContent=sn['other'+n];
+  });
+}
+
+function chkCap(){
+  const fid=document.getElementById('stay-facility').value;const fac=getSFac(fid);if(!fac)return;
+  const aEl=document.getElementById('stay-ninzu');const cEl=document.getElementById('stay-child');
+  const a=parseInt(aEl.value)||0;const c=parseInt(cEl.value)||0;
+  // enforce max
+  aEl.max=fac.maxT;cEl.max=fac.maxT;
+  const cw=document.getElementById('cap-warn');
+  if(a+c>fac.maxT){cw.style.display='';cw.textContent='⚠️ 定員超過（最大'+fac.maxT+'名）';}
+  else cw.style.display='none';
+  const pw=document.getElementById('pet-warn');
+  const p=parseInt(document.getElementById('stay-pet').value)||0;
+  pw.style.display=(p>0&&fac.pet==='不可')?'':'none';
+  if(p>0&&fac.pet==='不可')pw.textContent='⚠️ この施設はペット不可です';
+}
+
+function getSPrice(fac,n){
+  const keys=Object.keys(fac.prices).map(Number).sort((a,b)=>a-b);
+  const k=Math.min(n,keys[keys.length-1]);return fac.prices[k]||fac.prices[keys[keys.length-1]];
+}
+
+function addDays(d,n){
+  const[y,mo,dy]=d.split('-').map(Number);
+  const dt=new Date(y,mo-1,dy+n);
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+}
+function normDate(d){
+  if(!d)return'';
+  if(d.length===8&&!d.includes('-'))return d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);
+  return d;
+}
+
+function fmtDate(d){
+  if(!d)return'';
+  const s=String(d).replace(/\//g,'-').trim();
+  let dt;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+    const[y,mo,dy]=s.split('-').map(Number);
+    dt=new Date(y,mo-1,dy);
+  }else if(/^\d{8}$/.test(s)){
+    dt=new Date(+s.slice(0,4),+s.slice(4,6)-1,+s.slice(6,8));
+  }else return s;
+  if(isNaN(dt.getTime()))return s;
+  const dow=['日','月','火','水','木','金','土'][dt.getDay()];
+  return (dt.getMonth()+1)+'月'+dt.getDate()+'日（'+dow+'）';
+}
+
+function updDayLink(){
+  const c=document.getElementById('stay-daylink');if(!c)return;
+  c.innerHTML='';
+  const cin=normDate(document.getElementById('stay-checkin').value);
+  let list=reservations;
+  if(cin){
+    const base=new Date(cin);
+    const dates=[-2,-1,0,1,2].map(d=>{const dt=new Date(base);dt.setDate(dt.getDate()+d);return dt.toISOString().slice(0,10);});
+    list=reservations.filter(r=>!r.date||dates.includes(r.date));
+  }
+  if(!list.length){c.innerHTML='<div style="font-size:13px;color:#aaa;padding:6px 0">日帰り予約なし</div>';return;}
+  list.forEach(r=>{
+    const fac=getFac(r.facility);if(!fac)return;
+    const srcL=r.source?'【'+getSrcLabel(r.source)+'】':'【直接予約】';
+    const id='sdl_'+r.id;
+    const row=document.createElement('div');row.className='link-check-item';
+    row.innerHTML='<input type="checkbox" id="'+id+'" value="'+r.id+'"><label for="'+id+'">'+(r.date?fmtDate(r.date)+' ':'')+fac.label+(r.name?' '+r.name:'')+(r.startTime?' '+r.startTime:'')+' '+srcL+'</label>';
+    c.appendChild(row);
+  });
+}
+
+function getStayDayLinkIds(){
+  const c=document.getElementById('stay-daylink');if(!c)return[];
+  return [...c.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
+}
+
+function calcStay(){
+  chkCap();
+  const fid=document.getElementById('stay-facility').value;
+  const cin=normDate(document.getElementById('stay-checkin').value);
+  const nights=parseInt(document.getElementById('stay-nights').value)||1;
+  const ninzu=parseInt(document.getElementById('stay-ninzu').value)||0;
+  const child=parseInt(document.getElementById('stay-child').value)||0;
+  const totalPpl=ninzu;
+  const mura=document.getElementById('stay-mura')&&document.getElementById('stay-mura').checked;
+  const disp=document.getElementById('stay-date-disp');
+  if(!cin){disp.textContent='';return;}
+  const cout=addDays(cin,nights);
+  disp.textContent=fmtDate(cin)+' 〜 '+fmtDate(cout)+'（'+nights+'泊）';
+  if(!fid||!ninzu){document.getElementById('stay-price-unit').textContent='';document.getElementById('stay-price-total').textContent='';return;}
+  const fac=getSFac(fid);if(!fac)return;
+  const baseUnit=getSPrice(fac,totalPpl);
+  const unit=mura?Math.floor(baseUnit/2):baseUnit;
+  const rt=mura?0:calcRT(stayRentalSt);
+  const pet=parseInt(document.getElementById('stay-pet').value)||0;
+  const petFee=pet*3000*nights;
+  const base=unit*totalPpl*nights;
+  const grand=base+petFee+rt;
+  const pplStr=child>0?'（大人'+ninzu+'人＋子供(3歳未満)'+child+'人）':'（'+ninzu+'人）';
+  document.getElementById('stay-price-unit').textContent=(mura?baseUnit.toLocaleString()+'円 → 村内半額 ':'')+unit.toLocaleString()+'円/人'+pplStr+' × 大人'+ninzu+'人 × '+nights+'泊'+(pet>0?'　ペット '+pet+'匹×3,000円×'+nights+'泊':'');
+  document.getElementById('stay-price-total').textContent=rt>0||petFee>0?
+    '宿泊 '+base.toLocaleString()+'円'+(petFee>0?' ＋ ペット '+petFee.toLocaleString()+'円':'')+(rt>0?' ＋ 備品 '+rt.toLocaleString()+'円':'')+'　合計 '+grand.toLocaleString()+'円':
+    (mura?'村内割引　':'')+'合計　'+grand.toLocaleString()+'円';
+}
+
+function saveStay(){
+  const fid=document.getElementById('stay-facility').value;
+  const cin=normDate(document.getElementById('stay-checkin').value);
+  const ninzu=parseInt(document.getElementById('stay-ninzu').value)||0;
+  const child=parseInt(document.getElementById('stay-child').value)||0;
+  const totalPpl=ninzu; // 子供（3歳未満）は料金計算に含めない
+  const err=[];if(!fid)err.push('施設');if(!cin)err.push('チェックイン日');if(!ninzu)err.push('大人人数');
+  const fac=getSFac(fid);
+  if(fac&&(ninzu+child)>fac.maxT)err.push('定員超過（最大'+fac.maxT+'名）');
+  if(err.length){showToast('⚠ '+err.join('・'),'#c00');return;}
+  const nights=parseInt(document.getElementById('stay-nights').value)||1;
+  const cout=addDays(cin,nights);
+  const mura=document.getElementById('stay-mura')&&document.getElementById('stay-mura').checked;
+  const baseUnit=getSPrice(fac,totalPpl);
+  const unit=mura?Math.floor(baseUnit/2):baseUnit;
+  const pet=parseInt(document.getElementById('stay-pet').value)||0;
+  const petFee=pet*3000*nights;
+  const src=document.getElementById('stay-source').value;
+  const linked=getStayDayLinkIds();
+  const sid='s_'+Date.now();
+  const memoBase=document.getElementById('stay-memo').value||'';
+  const memoVal=mura?(memoBase?memoBase+'　村内':'村内'):memoBase;
+  stays.push({id:sid,facility:fid,checkin:cin,checkout:cout,nights,
+    name:document.getElementById('stay-name').value,ninzu,child:String(child),
+    petCount:pet,petFee,unitPrice:unit,totalPpl,source:src,mura,
+    rental:getRD(stayRentalSt),linkedDayIds:linked,
+    bed:getBedValue(),
+    memo:memoVal,
+    done:false,changed:false,createdAt:Date.now()});
+  // 双方向同期：紐づけた日帰りにこの宿泊IDを追記
+  linked.forEach(rid=>{
+    const r=reservations.find(x=>x.id===rid);
+    if(r&&!(r.linkedStayIds||[]).includes(sid)){r.linkedStayIds=[...(r.linkedStayIds||[]),sid];}
+  });
+  sv(STKEY,stays);sv(RKEY,reservations);stayRentalSt={};
+  ['stay-name','stay-memo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('stay-ninzu').value='';document.getElementById('stay-child').value='';
+  document.getElementById('stay-pet').value='0';document.getElementById('stay-source').value='';
+  showToast('✓ 宿泊予約を保存しました');switchTab('list');
+}
+
+// 一覧
+function renderList(){
+  renderFltTabs();
+  // 日付フィルターバー
+  const bar=document.getElementById('date-filter-bar');
+  const lbl=document.getElementById('date-filter-label');
+  if(dateFilter){
+    bar.style.display='flex';
+    lbl.textContent='📅 '+fmtDate(dateFilter)+' の予約';
+  }else{
+    bar.style.display='none';
+  }
+  const c=document.getElementById('list-container');c.innerHTML='';
+  let dl=reservations.slice(),sl=stays.slice();
+  // 日付フィルター
+  if(dateFilter){
+    dl=dl.filter(r=>r.date===dateFilter);
+    sl=sl.filter(s=>s.checkin&&s.checkout&&s.checkin<=dateFilter&&s.checkout>dateFilter);
+  }
+  // 施設フィルター（日付フィルター中は施設フィルターも併用可）
+  if(facFilter==='stay')dl=[];
+  else if(facFilter!=='all'){sl=[];dl=dl.filter(r=>r.facility===facFilter);}
+  if(facFilter!=='all'&&facFilter!=='stay')sl=[];
+  sl.sort((a,b)=>a.checkin.localeCompare(b.checkin));
+  dl.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.startTime.localeCompare(b.startTime));
+  if(!dl.length&&!sl.length){c.innerHTML='<div class="empty">'+(dateFilter?fmtDate(dateFilter)+'の予約はありません':'予約がありません')+'</div>';return;}
+
+  sl.forEach(s=>{
+    const fac=getSFac(s.facility);if(!fac)return;
+    const rt=(s.rental||[]).reduce((sum,i)=>sum+i.price*i.qty,0);
+    const totalPpl=s.totalPpl||(s.ninzu+(parseInt(s.child)||0));
+    const base=s.unitPrice*totalPpl*s.nights;
+    const grand=base+(s.petFee||0)+rt;
+    const srcL=s.source?getSrcLabel(s.source):'';
+    const linkedH=(s.linkedDayIds||[]).map(lid=>{
+      const lr=reservations.find(r=>r.id===lid);if(!lr)return'';
+      const lf=getFac(lr.facility);
+      return '<div class="card-meta" style="font-size:12px;color:#224466;margin-top:2px">📌 '+(lr.date?fmtDate(lr.date):'')+(lf?' '+lf.label:'')+( lr.name?' '+lr.name:'')+(lr.startTime?' '+lr.startTime:'')+'</div>';
+    }).join('');
+    const div=document.createElement('div');div.className='card'+(s.done?' done':'');
+    div.innerHTML=
+      '<div class="card-header">'+
+        '<span class="badge badge-stay">宿泊</span>'+
+        '<span style="font-size:12px;font-weight:600;color:#7a1030">'+fac.label+'</span>'+
+        (s.changed?'<span class="badge-changed">変更済み</span>':'')+
+        (s.done?'<span class="badge badge-done">対応済み</span>':'')+
+        (srcL?'<span style="font-size:11px;color:#888;border:1px solid #ddd;border-radius:10px;padding:1px 6px">'+srcL+'</span>':'')+
+        '<div style="flex:1"></div>'+
+        '<div class="card-actions">'+
+          '<button class="btn-sm" data-act="toggleSD" data-id="'+s.id+'">'+(s.done?'戻す':'完了')+'</button>'+
+          '<button class="btn-sm" data-act="markChanged" data-id="'+s.id+'">変更</button>'+
+          '<button class="btn-sm" data-act="openEditStay" data-id="'+s.id+'">編集</button>'+
+          '<button class="btn-sm btn-danger" data-act="delStay" data-id="'+s.id+'">削除</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card-time" style="font-size:17px">'+fmtDate(s.checkin)+' 〜 '+fmtDate(s.checkout)+'</div>'+
+      '<div class="card-meta" style="font-size:13px;color:#888">'+s.nights+'泊　チェックイン: '+fac.ci+'　チェックアウト: '+fac.co+'</div>'+
+      (s.name?'<div class="card-name">'+s.name+'</div>':'')+
+      '<div class="card-meta"><span style="font-size:20px;font-weight:600">'+s.ninzu+'人</span>'+(parseInt(s.child)>0?'<span style="font-size:13px;color:#111"> ＋子供(3歳未満)'+s.child+'人</span>':'')+((s.petCount||0)>0?'<span style="font-size:13px;color:#111"> ペット'+s.petCount+'匹</span>':'')+'</div>'+
+      '<div class="card-meta" style="font-size:13px;color:#111">'+s.unitPrice.toLocaleString()+'円/人 × 大人'+s.ninzu+'人 × '+s.nights+'泊'+((s.petFee||0)>0?' ＋ペット'+s.petFee.toLocaleString()+'円':'')+'</div>'+
+      ((s.rental||[]).length?'<div style="margin-top:4px">'+s.rental.map(i=>'<div class="card-meta" style="font-size:13px;color:#633806">'+i.name+(i.qty>1?' × '+i.qty:'')+'　'+(i.price*i.qty).toLocaleString()+'円</div>').join('')+'</div>':'')+
+      '<div class="card-total">合計　'+grand.toLocaleString()+'円</div>'+
+      linkedH+
+      (s.memo?'<div class="card-meta" style="font-size:13px;color:#888;margin-top:4px">'+s.memo+'</div>':'');
+    c.appendChild(div);
+  });
+
+  dl.forEach(r=>{
+    const fac=getFac(r.facility);if(!fac)return;
+    const end=getEnd(r.startTime,r.course,r.facility);
+    const co=fac.courses.find(x=>x.min===r.course);
+    const basePrice=fac.prices[r.course];
+    const mura=r.mura||false;
+    const price=mura?(fac.fixedCount?0:Math.floor(basePrice/2)):basePrice;
+    const ninzu=parseInt(r.ninzu)||0;
+    const rental=r.rental||[];
+    const rt=mura?0:rental.reduce((s,i)=>s+i.price*i.qty,0);
+    const isOv=r.facility==='tree'&&!r.done&&checkOverlap(r.startTime,r.course,r.id);
+    let totH='';
+    if(mura){
+      totH='<div class="card-total" style="color:#e67700">村内割引　合計　'+(fac.fixedCount?0:price*ninzu).toLocaleString()+'円</div>';
+    }else if(fac.fixedCount){
+      totH='<div class="card-total">'+(rt>0?'レンタル代 '+price.toLocaleString()+'円 ＋ 備品 '+rt.toLocaleString()+'円　合計 '+(price+rt).toLocaleString()+'円':'合計　'+price.toLocaleString()+'円')+'</div>';
+    }else if(ninzu>0){
+      totH='<div class="card-total">合計　'+(price*ninzu).toLocaleString()+'円（'+ninzu+fac.priceUnit+'）</div>';
+    }
+    const div=document.createElement('div');div.className='card'+(r.done?' done':'');
+    const daySrcL=r.source?getSrcLabel(r.source):'';
+    const linkedStayH=(r.linkedStayIds||[]).map(sid=>{
+      const ls=stays.find(x=>x.id===sid);if(!ls)return'';
+      const lf=getSFac(ls.facility);
+      return '<div class="card-meta" style="font-size:12px;color:#7a1030;margin-top:2px">🏕 '+(lf?lf.label:'')+' '+(ls.name||'')+' '+fmtDate(ls.checkin)+'</div>';
+    }).join('');
+    const linkedDayH=(r.linkedDayIds||[]).map(did=>{
+      const ld=reservations.find(x=>x.id===did);if(!ld)return'';
+      const lf=getFac(ld.facility);
+      return '<div class="card-meta" style="font-size:12px;color:#224466;margin-top:2px">📌 '+(lf?lf.label:'')+' '+(ld.name||'')+(ld.date?' '+fmtDate(ld.date):'')+' '+(ld.startTime||'')+'</div>';
+    }).join('');
+    div.innerHTML=
+      '<div class="card-header">'+
+        '<span class="badge '+fac.badgeCls+'">'+fac.label+'</span>'+
+        (mura?'<span style="font-size:11px;font-weight:600;background:#fff8e8;color:#e67700;border:1px solid #EF9F27;border-radius:20px;padding:2px 8px">村内</span>':'')+
+        (isOv?'<span class="badge-overlap">重複</span>':'')+
+        (r.changed?'<span class="badge-changed">変更済み</span>':'')+
+        (r.done?'<span class="badge badge-done">対応済み</span>':'')+
+        (daySrcL?'<span style="font-size:11px;color:#888;border:1px solid #ddd;border-radius:10px;padding:1px 6px">'+daySrcL+'</span>':'')+
+        '<div style="flex:1"></div>'+
+        '<div class="card-actions">'+
+          '<button class="btn-sm" data-act="toggleDD" data-id="'+r.id+'">'+(r.done?'戻す':'完了')+'</button>'+
+          '<button class="btn-sm" data-act="markChangedDay" data-id="'+r.id+'">変更</button>'+
+          '<button class="btn-sm" data-act="openEdit" data-id="'+r.id+'">編集</button>'+
+          '<button class="btn-sm btn-danger" data-act="delDay" data-id="'+r.id+'">削除</button>'+
+        '</div>'+
+      '</div>'+
+      (r.date?'<div style="font-size:13px;color:#888;margin-bottom:2px">'+fmtDate(r.date)+'</div>':'')+
+      '<div class="card-time">'+r.startTime+' 〜 '+end+(fac.note?'　<span style="font-size:13px;font-weight:400;color:#888">（'+fac.note+'）</span>':'')+'</div>'+
+      (r.name?'<div class="card-name">'+r.name+'</div>':'')+
+      '<div class="card-meta">'+(co?(fac.fixedCount?'<span style="font-size:13px;color:#aaa">'+co.minLabel+'</span>　':'<span style="font-size:20px;font-weight:600">'+co.minLabel+'</span>　'):'')+price.toLocaleString()+'円/1'+fac.priceUnit+(fac.note?'　<span style="font-size:13px;color:#aaa">（'+fac.note+'）</span>':'')+'</div>'+
+      (r.ninzu?'<div class="card-meta">'+(fac.fixedCount?'人数：'+r.ninzu+'人':'<span style="font-size:20px;font-weight:600">'+r.ninzu+'人</span>')+'</div>':'')+
+      (rental.length?'<div style="margin-top:6px;padding-top:6px;border-top:1px solid #eee">'+rental.map(i=>'<div class="card-meta" style="font-size:13px;color:#633806">'+i.name+(i.qty>1?' × '+i.qty:'')+'　'+(i.price*i.qty).toLocaleString()+'円</div>').join('')+'</div>':'')+
+      totH+linkedStayH+linkedDayH+fields.map(f=>{const v=(r.customValues||{})[f.id];return v?'<div class="card-meta"><span style="color:#aaa">'+f.name+'：</span>'+v+'</div>':''}).join('');
+    c.appendChild(div);
+  });
+}
+
+function toggleDD(id){const r=reservations.find(x=>x.id===id);if(r){r.done=!r.done;sv(RKEY,reservations);renderList();}}
+function toggleSD(id){const s=stays.find(x=>x.id===id);if(s){s.done=!s.done;sv(STKEY,stays);renderList();}}
+function markChanged(id){const s=stays.find(x=>x.id===id);if(s){s.changed=!s.changed;sv(STKEY,stays);renderList();showToast(s.changed?'変更済みにしました':'変更済みを解除しました',s.changed?'#c00':'#555');}}
+function markChangedDay(id){const r=reservations.find(x=>x.id===id);if(r){r.changed=!r.changed;sv(RKEY,reservations);renderList();showToast(r.changed?'変更済みにしました':'変更済みを解除しました',r.changed?'#c00':'#555');}}
+let _confirmCb=null;
+function showConfirm(msg,cb){
+  _confirmCb=cb;
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function confirmOk(){
+  document.getElementById('confirm-modal').classList.remove('open');
+  document.body.style.overflow='';
+  if(_confirmCb){_confirmCb();_confirmCb=null;}
+}
+function confirmCancel(){
+  document.getElementById('confirm-modal').classList.remove('open');
+  document.body.style.overflow='';
+  _confirmCb=null;
+}
+
+function delDay(id){showConfirm('この予約を削除しますか？',function(){reservations=reservations.filter(x=>x.id!==id);sv(RKEY,reservations);renderList();});}
+function delStay(id){showConfirm('この予約を削除しますか？',function(){stays=stays.filter(x=>x.id!==id);sv(STKEY,stays);renderList();});}
+
+// 日帰り保存
+function renderCFAdd(vals={}){
+  const c=document.getElementById('custom-fields-add');c.innerHTML='';
+  fields.forEach(f=>{
+    const w=document.createElement('div');const l=document.createElement('label');l.textContent=f.name;w.appendChild(l);
+    let inp;
+    if(f.type==='select3'){inp=document.createElement('select');inp.id='cf_'+f.id;f.options.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(vals[f.id]===o)op.selected=true;inp.appendChild(op);});}
+    else if(f.type==='memo'){inp=document.createElement('textarea');inp.id='cf_'+f.id;inp.value=vals[f.id]||'';}
+    else{inp=document.createElement('input');inp.type=f.type==='number'?'number':'text';inp.id='cf_'+f.id;inp.value=vals[f.id]||'';}
+    w.appendChild(inp);c.appendChild(w);
+  });
+}
+function getCFV(){const v={};fields.forEach(f=>{const el=document.getElementById('cf_'+f.id);if(el)v[f.id]=el.value;});return v;}
+
+function saveReservation(){
+  const st=document.getElementById('start-time').value;
+  const dt=normDate(document.getElementById('day-date').value);
+  const err=[];if(!dt)err.push('予約日');if(!st)err.push('開始時刻');
+  if(err.length){showToast('⚠ '+err.join('・')+' を入力してください','#c00');return;}
+  const src=document.getElementById('day-source').value;
+  const mura=document.getElementById('day-mura')&&document.getElementById('day-mura').checked;
+  const linkedStayIds=getDayStayLinkIds();
+  const linkedDayIds=getDayDayLinkIds();
+  const rid='r_'+Date.now();
+  // 村内割引の料金計算
+  const fac2=getFac(addFacId);
+  const basePrice=fac2.prices[addCourse];
+  const discountedPrice=mura?(fac2.fixedCount?0:Math.floor(basePrice/2)):basePrice;
+  // メモ
+  const memoBase=mura?'村内':'';
+  reservations.push({id:rid,facility:addFacId,course:addCourse,date:dt,startTime:st,
+    name:document.getElementById('add-name').value,ninzu:document.getElementById('add-ninzu').value,
+    source:src,linkedStayIds,linkedDayIds,mura,discountedPrice,
+    memo:memoBase,
+    rental:addFacId==='bbq'?getRD(rentalSt):[],customValues:getCFV(),done:false,changed:false,createdAt:Date.now()});
+  // 双方向同期：宿泊
+  linkedStayIds.forEach(sid=>{
+    const s=stays.find(x=>x.id===sid);
+    if(s&&!(s.linkedDayIds||[]).includes(rid)){s.linkedDayIds=[...(s.linkedDayIds||[]),rid];}
+  });
+  // 双方向同期：日帰り同士
+  linkedDayIds.forEach(oid=>{
+    const o=reservations.find(x=>x.id===oid);
+    if(o&&!(o.linkedDayIds||[]).includes(rid)){o.linkedDayIds=[...(o.linkedDayIds||[]),rid];}
+  });
+  sv(RKEY,reservations);sv(STKEY,stays);
+  document.getElementById('add-ninzu').value='';document.getElementById('add-name').value='';document.getElementById('day-date').value='';
+  document.getElementById('day-source').value='';
+  if(document.getElementById('day-mura'))document.getElementById('day-mura').checked=false;
+  rentalSt={};showToast('✓ 日帰り予約を保存しました');switchTab('list');
+}
+
+// 編集
+function openEdit(id){
+  const r=reservations.find(x=>x.id===id);if(!r)return;editId=id;editType='day';
+  const fac=getFac(r.facility);
+  const rMap={};(r.rental||[]).forEach(i=>rMap[i.id]={checked:true,qty:i.qty});
+  const facOpts=FACILITIES.map(f=>'<option value="'+f.id+'"'+(r.facility===f.id?' selected':'')+'>'+f.label+'</option>').join('');
+  const filt=fac.courses.filter(c=>c.min!==0);
+  const crBlk=filt.length?'<label>コース</label><select id="edit-course">'+filt.map(c=>'<option value="'+c.min+'"'+(r.course===c.min?' selected':'')+'>'+c.minLabel+'</option>').join('')+'</select>':'';
+  const srcOpts=['','rakuten','jalan','sou','other1','other2','other3','pass_day','pass_night'].map(k=>'<option value="'+k+'"'+((r.source||'')=== k?' selected':'')+'>'+( k?getSrcLabel(k):'直接予約')+'</option>').join('');
+  let slCks='';stays.forEach(s=>{const sf=getSFac(s.facility);const chk=(r.linkedStayIds||[]).includes(s.id)?'checked':'';const srcL=s.source?'【'+getSrcLabel(s.source)+'】':'【直接予約】';slCks+='<div class="link-check-item"><input type="checkbox" id="esl_'+s.id+'" value="'+s.id+'" '+chk+'><label for="esl_'+s.id+'">'+fmtDate(s.checkin)+(sf?' '+sf.label:'')+(s.name?' '+s.name:'')+' '+srcL+'</label></div>';});
+  if(!slCks)slCks='<div style="font-size:13px;color:#aaa;padding:6px 0">宿泊予約なし</div>';
+  let dlCks='';reservations.filter(x=>x.id!==r.id).forEach(o=>{const of=getFac(o.facility);const chk=(r.linkedDayIds||[]).includes(o.id)?'checked':'';const srcL=o.source?'【'+getSrcLabel(o.source)+'】':'【直接予約】';dlCks+='<div class="link-check-item"><input type="checkbox" id="edl_'+o.id+'" value="'+o.id+'" '+chk+'><label for="edl_'+o.id+'">'+(o.date?fmtDate(o.date)+' ':'')+(of?of.label:'')+(o.name?' '+o.name:'')+(o.startTime?' '+o.startTime:'')+' '+srcL+'</label></div>';});
+  if(!dlCks)dlCks='<div style="font-size:13px;color:#aaa;padding:6px 0">他の日帰り予約なし</div>';
+  let html='<label>施設</label><select id="edit-facility" onchange="updEditCrs()">'+facOpts+'</select>'+crBlk+
+    '<label>予約日</label><input type="date" id="edit-date" value="'+(r.date||'')+'">'+
+    '<label>予約サイト</label><select id="edit-day-src">'+srcOpts+'</select>'+
+    '<label>開始時刻</label><input type="time" id="edit-start" value="'+r.startTime+'">'+
+    '<label>予約者名</label><input type="text" id="edit-name" value="'+(r.name||'')+'">'+
+    '<label>人数</label><input type="number" id="edit-ninzu" value="'+(r.ninzu||'')+'" min="1">'+
+    '<label>紐付き宿泊予約</label><div id="edit-staylink" class="link-check-list">'+slCks+'</div>'+
+    '<label>紐付き日帰り予約</label><div id="edit-daylink" class="link-check-list">'+dlCks+'</div>';
+  if(r.facility==='bbq'){
+    const rItms=(items)=>items.map(item=>{
+      const s=rMap[item.id]||{checked:false,qty:1};
+      return '<div class="rental-item">'+
+        '<input type="checkbox" class="rental-check" id="erc_'+item.id+'"'+(s.checked?' checked':'')+' onchange="eRChg(\''+item.id+'\')">'+
+        '<label for="erc_'+item.id+'" class="rental-label">'+item.name+'</label>'+
+        '<span class="rental-price">'+item.price.toLocaleString()+'円</span>'+
+        '<div class="rental-qty" id="erq_'+item.id+'" style="display:'+(s.checked?'flex':'none')+'">'+
+          '<button type="button" onclick="eRChgQ(\''+item.id+'\',-1)">－</button>'+
+          '<span id="ers_'+item.id+'">'+s.qty+'</span>'+
+          '<button type="button" onclick="eRChgQ(\''+item.id+'\',1)">＋</button>'+
+        '</div></div>';
+    }).join('');
+    html+='<hr style="border:none;border-top:1px solid #eee;margin:12px 0"><div style="font-size:14px;font-weight:600;color:#633806;margin-bottom:4px">備品レンタル</div>';
+    html+=rItms(ALL_ITEMS.filter(x=>!x.col));
+    html+='<div style="font-size:13px;color:#888;cursor:pointer;padding:8px 0" onclick="togEditEx(this)">▶ その他（'+ALL_ITEMS.filter(x=>x.col).length+'点）</div>';
+    html+='<div id="edit-ex" style="display:none">'+rItms(ALL_ITEMS.filter(x=>x.col))+'</div>';
+  }
+  html+='<hr style="border:none;border-top:1px solid #eee;margin:12px 0">';
+  fields.forEach(f=>{
+    const v=(r.customValues||{})[f.id]||'';html+='<label>'+f.name+'</label>';
+    if(f.type==='select3')html+='<select id="ef_'+f.id+'">'+f.options.map(o=>'<option'+(v===o?' selected':'')+'>'+o+'</option>').join('')+'</select>';
+    else if(f.type==='memo')html+='<textarea id="ef_'+f.id+'">'+v+'</textarea>';
+    else html+='<input type="'+(f.type==='number'?'number':'text')+'" id="ef_'+f.id+'" value="'+v+'">';
+  });
+  document.getElementById('edit-modal-title').textContent='日帰り予約を編集';
+  document.getElementById('edit-modal-content').innerHTML=html;
+  document.getElementById('edit-modal').classList.add('open');document.body.style.overflow='hidden';
+}
+
+function openEditStay(id){
+  const s=stays.find(x=>x.id===id);if(!s)return;editId=id;editType='stay';
+  const facOpts=STAY_FACS.map(f=>'<option value="'+f.id+'"'+(s.facility===f.id?' selected':'')+'>'+f.group+' - '+f.label+'</option>').join('');
+  const srcOpts=['','rakuten','jalan','sou','other1','other2','other3','pass_day','pass_night'].map(k=>'<option value="'+k+'"'+(s.source===k?' selected':'')+'>'+( k?getSrcLabel(k):'直接予約')+'</option>').join('');
+  let lCks='';
+  reservations.forEach(r=>{
+    const rf=getFac(r.facility);const srcL=r.source?'【'+getSrcLabel(r.source)+'】':'【直接予約】';
+    const chk=(s.linkedDayIds||[]).includes(r.id)?'checked':'';
+    lCks+='<div class="link-check-item"><input type="checkbox" id="esdl_'+r.id+'" value="'+r.id+'" '+chk+'><label for="esdl_'+r.id+'">'+(r.date?fmtDate(r.date)+' ':'')+(rf?rf.label:'')+(r.name?' '+r.name:'')+(r.startTime?' '+r.startTime:'')+' '+srcL+'</label></div>';
+  });
+  if(!lCks)lCks='<div style="font-size:13px;color:#aaa;padding:6px 0">日帰り予約なし</div>';
+  // 備品チェックマップ
+  const rMap={};(s.rental||[]).forEach(i=>rMap[i.id]={checked:true,qty:i.qty});
+  const rItms=(items)=>items.map(item=>{
+    const rs=rMap[item.id]||{checked:false,qty:1};
+    return '<div class="rental-item">'+
+      '<input type="checkbox" class="rental-check" id="esr_'+item.id+'"'+(rs.checked?' checked':'')+' onchange="esrChg(\''+item.id+'\')">'+
+      '<label for="esr_'+item.id+'" class="rental-label">'+item.name+'</label>'+
+      '<span class="rental-price">'+item.price.toLocaleString()+'円</span>'+
+      '<div class="rental-qty" id="esrq_'+item.id+'" style="display:'+(rs.checked?'flex':'none')+'">'+
+        '<button type="button" onclick="esrChgQ(\''+item.id+'\',-1)">－</button>'+
+        '<span id="esrs_'+item.id+'">'+rs.qty+'</span>'+
+        '<button type="button" onclick="esrChgQ(\''+item.id+'\',1)">＋</button>'+
+      '</div></div>';
+  }).join('');
+  let html='<label>施設</label><select id="es-fac">'+facOpts+'</select>'+
+    '<label>予約サイト</label><select id="es-src" onchange="esSrcChg()">'+srcOpts+'</select>'+
+    '<label>チェックイン日</label><input type="date" id="es-cin" value="'+s.checkin+'">'+
+    '<label>泊数</label><input type="number" id="es-nights" value="'+s.nights+'" min="1">'+
+    '<label>予約者名</label><input type="text" id="es-name" value="'+(s.name||'')+'">'+
+    '<label>大人人数</label><input type="number" id="es-ninzu" value="'+s.ninzu+'" min="1">'+
+    '<label>子供人数</label><input type="number" id="es-child" value="'+(s.child||0)+'" min="0">'+
+    '<label>ベッド配置</label>'+
+    '<div style="display:flex;flex-direction:column;gap:8px;padding:10px;background:#fff;border:1px solid #ddd;border-radius:8px;margin-bottom:4px">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<input type="checkbox" id="es-bed-ww" style="width:22px;height:22px;cursor:pointer;flex-shrink:0"'+(s.bed==='ww'?' checked':'')+' onchange="esOnBedChange(\'ww\')">'+
+        '<label for="es-bed-ww" style="font-size:14px;color:#111;cursor:pointer">Wベッド×2</label>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<input type="checkbox" id="es-bed-ws" style="width:22px;height:22px;cursor:pointer;flex-shrink:0"'+(s.bed==='ws'?' checked':'')+' onchange="esOnBedChange(\'ws\')">'+
+        '<label for="es-bed-ws" style="font-size:14px;color:#111;cursor:pointer">Wベッド×1、ソファ×1</label>'+
+      '</div>'+
+    '</div>'+
+    '<label>ペット</label><select id="es-pet">'+[0,1,2,3].map(n=>'<option value="'+n+'"'+((s.petCount||0)===n?' selected':'')+'>'+( n===0?'なし':n+'匹')+'</option>').join('')+'</select>'+
+    '<label>同日の日帰り予約との紐づけ</label><div id="es-daylink" class="link-check-list">'+lCks+'</div>'+
+    '<hr style="border:none;border-top:1px solid #eee;margin:12px 0">'+
+    '<div style="font-size:14px;font-weight:600;color:#633806;margin-bottom:4px">備品レンタル</div>'+
+    rItms(ALL_ITEMS.filter(x=>!x.col))+
+    '<div style="font-size:13px;color:#888;cursor:pointer;padding:8px 0" onclick="togEsrEx(this)">▶ その他（'+ALL_ITEMS.filter(x=>x.col).length+'点）</div>'+
+    '<div id="esr-ex" style="display:none">'+rItms(ALL_ITEMS.filter(x=>x.col))+'</div>'+
+    '<hr style="border:none;border-top:1px solid #eee;margin:12px 0">'+
+    '<label>メモ</label><textarea id="es-memo">'+(s.memo||'')+'</textarea>';
+  document.getElementById('edit-modal-title').textContent='宿泊予約を編集';
+  document.getElementById('edit-modal-content').innerHTML=html;
+  document.getElementById('edit-modal').classList.add('open');document.body.style.overflow='hidden';
+}
+
+function esrChg(id){document.getElementById('esrq_'+id).style.display=document.getElementById('esr_'+id).checked?'flex':'none';}
+function esrChgQ(id,delta){const el=document.getElementById('esrs_'+id);el.textContent=Math.max(1,parseInt(el.textContent)+delta);}
+function togEsrEx(el){const d=document.getElementById('esr-ex');const o=d.style.display!=='none';d.style.display=o?'none':'';el.textContent=(o?'▶':'▼')+' その他（'+ALL_ITEMS.filter(x=>x.col).length+'点）';}
+
+function onSourceChange(){
+  const src=document.getElementById('stay-source').value;
+  const m=document.getElementById('stay-memo');
+  if(src)m.value=getSrcLabel(src)+'　料金支払い済み';
+}
+
+function esSrcChg(){const src=document.getElementById('es-src').value;const m=document.getElementById('es-memo');if(src)m.value=getSrcLabel(src)+'　料金支払い済み';}
+function togEditEx(el){const d=document.getElementById('edit-ex');const o=d.style.display!=='none';d.style.display=o?'none':'';el.textContent=(o?'▶':'▼')+' その他（'+ALL_ITEMS.filter(x=>x.col).length+'点）';}
+function eRChg(id){document.getElementById('erq_'+id).style.display=document.getElementById('erc_'+id).checked?'flex':'none';}
+function eRChgQ(id,delta){const el=document.getElementById('ers_'+id);el.textContent=Math.max(1,parseInt(el.textContent)+delta);}
+function updEditCrs(){
+  const fac=getFac(document.getElementById('edit-facility').value);
+  const sel=document.getElementById('edit-course');
+  if(sel)sel.innerHTML=fac.courses.filter(c=>c.min!==0).map(c=>'<option value="'+c.min+'">'+c.minLabel+'</option>').join('');
+}
+
+function saveEdit(){
+  if(editType==='stay'){saveEditStay();return;}
+  const r=reservations.find(x=>x.id===editId);if(!r)return;
+  r.facility=document.getElementById('edit-facility').value;
+  const cs=document.getElementById('edit-course');r.course=cs?parseInt(cs.value):0;
+  r.date=document.getElementById('edit-date').value;
+  r.startTime=document.getElementById('edit-start').value;
+  r.name=document.getElementById('edit-name').value;r.ninzu=document.getElementById('edit-ninzu').value;
+  r.source=document.getElementById('edit-day-src').value;
+  // 宿泊紐づけ双方向同期
+  const sl=document.getElementById('edit-staylink');
+  const newLinked=[...sl.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
+  const oldLinked=r.linkedStayIds||[];
+  oldLinked.filter(sid=>!newLinked.includes(sid)).forEach(sid=>{
+    const st=stays.find(x=>x.id===sid);
+    if(st)st.linkedDayIds=(st.linkedDayIds||[]).filter(id=>id!==r.id);
+  });
+  newLinked.filter(sid=>!oldLinked.includes(sid)).forEach(sid=>{
+    const st=stays.find(x=>x.id===sid);
+    if(st&&!(st.linkedDayIds||[]).includes(r.id))st.linkedDayIds=[...(st.linkedDayIds||[]),r.id];
+  });
+  r.linkedStayIds=newLinked;
+  // 日帰り同士紐づけ双方向同期
+  const dlEl=document.getElementById('edit-daylink');
+  const newDLinked=dlEl?[...dlEl.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value):[];
+  const oldDLinked=r.linkedDayIds||[];
+  oldDLinked.filter(did=>!newDLinked.includes(did)).forEach(did=>{
+    const o=reservations.find(x=>x.id===did);
+    if(o)o.linkedDayIds=(o.linkedDayIds||[]).filter(id=>id!==r.id);
+  });
+  newDLinked.filter(did=>!oldDLinked.includes(did)).forEach(did=>{
+    const o=reservations.find(x=>x.id===did);
+    if(o&&!(o.linkedDayIds||[]).includes(r.id))o.linkedDayIds=[...(o.linkedDayIds||[]),r.id];
+  });
+  r.linkedDayIds=newDLinked;
+  if(r.facility==='bbq'){
+    r.rental=ALL_ITEMS.filter(item=>{const el=document.getElementById('erc_'+item.id);return el&&el.checked;})
+      .map(item=>({id:item.id,name:item.name,price:item.price,qty:parseInt(document.getElementById('ers_'+item.id).textContent)||1}));
+  }
+  const v={};fields.forEach(f=>{const el=document.getElementById('ef_'+f.id);if(el)v[f.id]=el.value;});
+  r.customValues=v;sv(RKEY,reservations);sv(STKEY,stays);closeModal();renderList();showToast('日帰り予約を更新しました');
+}
+
+function saveEditStay(){
+  const s=stays.find(x=>x.id===editId);if(!s)return;
+  s.facility=document.getElementById('es-fac').value;
+  s.source=document.getElementById('es-src').value;
+  s.checkin=document.getElementById('es-cin').value;
+  s.nights=parseInt(document.getElementById('es-nights').value)||1;
+  s.checkout=addDays(s.checkin,s.nights);
+  s.name=document.getElementById('es-name').value;
+  s.ninzu=parseInt(document.getElementById('es-ninzu').value)||1;
+  s.child=document.getElementById('es-child').value||'0';
+  s.petCount=parseInt(document.getElementById('es-pet').value)||0;
+  s.bed=getEsBedValue();
+  s.petFee=s.petCount*3000*s.nights;
+  s.totalPpl=s.ninzu; // 子供（3歳未満）は料金計算に含めない
+  const fac=getSFac(s.facility);s.unitPrice=getSPrice(fac,s.totalPpl);
+  s.rental=ALL_ITEMS.filter(item=>{const el=document.getElementById('esr_'+item.id);return el&&el.checked;})
+    .map(item=>({id:item.id,name:item.name,price:item.price,qty:parseInt(document.getElementById('esrs_'+item.id).textContent)||1}));
+  s.memo=document.getElementById('es-memo').value;
+  const dl=document.getElementById('es-daylink');
+  const newLinked=[...dl.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
+  const oldLinked=s.linkedDayIds||[];
+  // 外れた日帰りからこの宿泊IDを削除
+  oldLinked.filter(rid=>!newLinked.includes(rid)).forEach(rid=>{
+    const rv=reservations.find(x=>x.id===rid);
+    if(rv)rv.linkedStayIds=(rv.linkedStayIds||[]).filter(id=>id!==s.id);
+  });
+  // 新たに追加された日帰りにこの宿泊IDを追記
+  newLinked.filter(rid=>!oldLinked.includes(rid)).forEach(rid=>{
+    const rv=reservations.find(x=>x.id===rid);
+    if(rv&&!(rv.linkedStayIds||[]).includes(s.id))rv.linkedStayIds=[...(rv.linkedStayIds||[]),s.id];
+  });
+  s.linkedDayIds=newLinked;
+  sv(STKEY,stays);sv(RKEY,reservations);closeModal();renderList();showToast('宿泊予約を更新しました');
+}
+
+function closeModal(){document.getElementById('edit-modal').classList.remove('open');document.body.style.overflow='';editId=null;}
+
+// 設定
+function renderSettings(){
+  const c=document.getElementById('fields-list');
+  if(!fields.length){c.innerHTML='<div class="empty">項目がありません</div>';return;}
+  c.innerHTML='';
+  fields.forEach((f,i)=>{
+    const div=document.createElement('div');div.className='field-item';
+    div.innerHTML='<span class="field-name">'+f.name+'</span><span class="field-type">'+f.type+'</span><button class="btn-sm btn-danger" onclick="removeField('+i+')">削除</button>';
+    c.appendChild(div);
+  });
+}
+
+function loadSNUI(){
+  document.getElementById('sn-1').value=sn['other1']||'';
+  document.getElementById('sn-2').value=sn['other2']||'';
+  document.getElementById('sn-3').value=sn['other3']||'';
+}
+function saveSourceNames(){
+  sn['other1']=document.getElementById('sn-1').value;
+  sn['other2']=document.getElementById('sn-2').value;
+  sn['other3']=document.getElementById('sn-3').value;
+  sv(SNKEY,sn);showToast('予約サイト名を保存しました');
+}
+
+function renderStock(){
+  const c=document.getElementById('stock-list');c.innerHTML='';
+  ALL_ITEMS.forEach(item=>{
+    const row=document.createElement('div');row.className='stock-row';
+    row.innerHTML='<span class="stock-name">'+item.name+'</span>'+
+      '<input type="number" class="stock-input" id="sk_'+item.id+'" value="'+(stock[item.id]||0)+'" min="0">';
+    c.appendChild(row);
+  });
+}
+function saveStock(){ALL_ITEMS.forEach(i=>{const el=document.getElementById('sk_'+i.id);if(el)stock[i.id]=parseInt(el.value)||0;});sv(SKKEY,stock);showToast('在庫を保存しました');}
+
+function addField(){
+  const name=document.getElementById('new-field-name').value.trim();const type=document.getElementById('new-field-type').value;
+  if(!name){showToast('⚠ 項目名を入力してください','#c00');return;}
+  const f={id:'f_'+Date.now(),name,type,options:[]};
+  if(type==='select3'){f.options=document.getElementById('new-options-input').value.split(',').map(s=>s.trim()).filter(Boolean);if(!f.options.length){showToast('⚠ 選択肢を入力してください','#c00');return;}}
+  fields.push(f);sv(FKEY,fields);
+  document.getElementById('new-field-name').value='';document.getElementById('new-options-input').value='';document.getElementById('new-select-options').style.display='none';renderSettings();
+}
+function removeField(i){showConfirm('この項目を削除しますか？',function(){fields.splice(i,1);sv(FKEY,fields);renderSettings();});}
+function toggleOptInput(){document.getElementById('new-select-options').style.display=document.getElementById('new-field-type').value==='select3'?'':'none';}
+
+// エクスポート・インポート・引き継ぎ
+// ---- Googleスプレッドシート同期 ----
+const GAS_KEY='yv_gas';
+function loadGasUrl(){const v=ld(GAS_KEY);if(v)document.getElementById('gas-url').value=v;}
+function saveGasUrl(){
+  const url=document.getElementById('gas-url').value.trim();
+  if(!url){showToast('⚠ URLを入力してください','#c00');return;}
+  sv(GAS_KEY,url);showToast('✓ GAS URLを保存しました');
+}
+
+async function syncToSheet(){
+  const url=ld(GAS_KEY)||(document.getElementById('gas-url').value.trim());
+  if(!url){showToast('⚠ GAS URLを先に設定してください','#c00');return;}
+  const st=document.getElementById('sync-status');
+  st.textContent='同期中...';
+  try{
+    const res=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({type:'sync_all',stays,reservations})
+    });
+    const json=await res.json();
+    if(json.status==='ok'){
+      st.textContent='✓ '+new Date().toLocaleTimeString('ja-JP')+' 同期完了';
+      showToast('✓ スプレッドシートに同期しました','#1a7a3a');
+    }else{
+      st.textContent='⚠ エラー: '+json.message;
+      showToast('⚠ 同期失敗','#c00');
+    }
+  }catch(e){
+    st.textContent='⚠ 通信エラー: '+e.message;
+    showToast('⚠ 通信エラー','#c00');
+  }
+}
+
+function exportData(){
+  const data={reservations,stays,fields,stock,sn,exportedAt:new Date().toISOString()};
+  const json=JSON.stringify(data);
+  if(navigator.clipboard)navigator.clipboard.writeText(json).then(()=>showToast('予約データをコピーしました'));
+  else{document.getElementById('import-text').value=json;showToast('テキストエリアにコピーしました');}
+}
+
+function importData(){
+  const text=document.getElementById('import-text').value.trim();if(!text){showToast('⚠ データを貼り付けてください','#c00');return;}
+  try{
+    const data=JSON.parse(text);
+    if(data.reservations)reservations=data.reservations;if(data.stays)stays=data.stays;
+    if(data.fields)fields=data.fields;if(data.stock)stock=data.stock;if(data.sn)sn=data.sn;
+    sv(RKEY,reservations);sv(STKEY,stays);sv(FKEY,fields);sv(SKKEY,stock);sv(SNKEY,sn);
+    document.getElementById('import-text').value='';showToast('インポート完了しました');
+    renderList();renderSettings();renderStock();
+  }catch{showToast('⚠ データの形式が正しくありません','#c00');}
+}
+
+function copyHandover(){
+  const spec='====================================================\n予約メモアプリ　新チャット引き継ぎ資料\n====================================================\n【アプリ概要】\n奈良県山間部のアウトドア施設（空中ウォーク・日帰りツリーハウス・BBQスペース・宿泊施設11棟）の予約管理アプリ。\nAndroidのChromeで動作するスタンドアロンHTMLファイル（yoyaku.html）。localStorage保存。PWA対応（manifest.json + sw.js）。\n\n【タブ構成】\n一覧 / 宿泊 / 日帰り / カレンダー / 設定\n\n【日帰り施設】\n●空中ウォーク：55分2000円/115分2500円/1DAY3000円、9〜17時（受付〜16時）\n●ツリーハウス（昼）：55分2000円/115分3000円/1DAY4000円、10〜16時（受付〜15時） ※時間帯重複検知あり\n●BBQスペース：1DAY3000円/1か所、10〜15時（受付14時まで）終了時刻固定\n\n【宿泊施設（順：ツリーハウス→ドーム→テント→ハンモック）】\n・ツリーハウス：大人4（計5）、ペット可、CI16:30〜18:00、CO9:30、バッテリー大無料\n  料金：1人14000/2人12000/3人10000/4人8000\n・透明ドーム（ミラー/透明/グレー）：大人4（計5）、透明のみペット可、CI14〜16、CO翌10、バッテリー大無料\n  料金：1人12000/2人10000/3人8000/4人7000\n・空中テント（オレンジ/ホワイト/ベージュ）：大人2（計3）、ペット不可、CI14〜16、CO翌10、バッテリー小無料\n  料金：1人9000/2人7000\n・空中ハンモック（①大/①小/②大/②小）：最大5名、ペット：ケージ可、CI14〜16、CO翌10、バッテリー小無料\n  料金（大）：1人6000/2人5000/3〜5人4000　（小）：1人6000/2人5000\n・ペット料金：3000円/匹/泊\n・ポータブル電源・ランタンは施設ごとに無料付属\n\n【備品レンタル（BBQ・宿泊共通、在庫管理あり）】\n焚火台7/ローテーブル4/チェア・ベンチ5/スキレット＋鍋6/木炭2kg5/ガスコンロ＋ガス3/バーナー1/マッチ5/ランタン5/薪割1/コーヒーセット1/天体望遠鏡2\n折りたたみ内：ポータブル電源大3・小4/ケトル5/飯ごう5/ホットサンドクッカー2/カイト5/火起こし器1/カート5/BBQ焼き網5\n価格：焚火台1500/ローテーブル600/チェア500/スキレット500/木炭500/ガスコンロ900/バーナー1200/マッチ200/ランタン500/薪割800/コーヒー1500/望遠鏡1500/電源大1400/電源小900/ケトル500/飯ごう500/ホットサンド400/カイト500/火起こし600/カート600/焼き網70\n\n【主な機能】\n・日付選択（予約日/チェックイン日）、開始時刻＋コース→終了時刻自動計算\n・ツリーハウス昼：時間帯重複検知（赤表示）\n・宿泊：CI日＋泊数→CO日自動計算（曜日付き）、定員超過・ペット不可警告\n・宿泊「変更」ボタン→「変更済み」赤バッジ（トグル）\n・日帰り↔宿泊の紐付け（双方向）\n・予約サイト選択（楽天/じゃらん/SOU/外部①②③）→メモ自動入力\n・保存成功トースト通知、未入力バリデーション\n・在庫管理：備品ごと在庫設定、残数表示、超過赤表示\n・カレンダー：施設別件数表示、タップで詳細表示\n・設定タブ：カスタム項目/在庫設定/予約サイト名/バックアップ/引き継ぎ\n・子供も大人と同料金（合算して単価決定）\n・localStorageキー：yv_f/yv_r/yv_st/yv_sk/yv_sn\n・PWA対応（manifest.json + sw.js が同フォルダに必要）\n\n====================================================\n新チャットへの依頼文\n====================================================\n予約メモアプリの続きをお願いします。\n上の引き継ぎ資料を読んでください。\n現在のyoyaku.htmlを添付します。\n\n【次にやりたいこと】\n（ここに要望を書いてください）\n====================================================';
+  const ta=document.getElementById('import-text');
+  ta.value=spec;
+  ta.style.minHeight='300px';
+  ta.select();
+  try{
+    document.execCommand('copy');
+    showToast('引き継ぎ文をコピーしました（テキストエリアにも表示）','#4a2080');
+  }catch(e){
+    showToast('テキストエリアに表示しました。長押しでコピーしてください','#4a2080');
+  }
+  ta.scrollIntoView({behavior:'smooth'});
+}
+
+// ---- カレンダー ----
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calSelDate=null;
+
+function initCal(){calYear=new Date().getFullYear();calMonth=new Date().getMonth();calSelDate=null;renderCal();}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+
+function getDateStr(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+
+function getDayReservations(dateStr){
+  const days=reservations.filter(r=>r.date===dateStr);
+  const stayList=stays.filter(s=>{
+    if(!s.checkin||!s.checkout)return false;
+    return s.checkin<=dateStr&&s.checkout>dateStr;
+  });
+  return{days,stayList};
+}
+
+function renderCal(){
+  const todayStr=new Date().toISOString().slice(0,10);
+  document.getElementById('cal-title').textContent=calYear+'年'+(calMonth+1)+'月';
+  const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  // 曜日ヘッダー
+  ['日','月','火','水','木','金','土'].forEach((h,i)=>{
+    const el=document.createElement('div');el.className='cal-head';
+    el.textContent=h;el.style.color=i===0?'#c00':i===6?'#226':'#888';
+    grid.appendChild(el);
+  });
+  const first=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  for(let i=0;i<first;i++){grid.appendChild(document.createElement('div'));}
+
+  // 施設ラベル定義（順番固定）
+  const FAC_LABELS=[
+    {key:'st_th',  label:'ツリー宿泊', type:'stay'},
+    {key:'st_dm',  label:'ドーム宿泊', type:'stay'},
+    {key:'st_dt',  label:'ドーム宿泊', type:'stay'},
+    {key:'st_dg',  label:'ドーム宿泊', type:'stay'},
+    {key:'st_t1',  label:'テント宿泊', type:'stay'},
+    {key:'st_t2',  label:'テント宿泊', type:'stay'},
+    {key:'st_t3',  label:'テント宿泊', type:'stay'},
+    {key:'st_h1a', label:'ハンモック宿泊',type:'stay'},
+    {key:'st_h1b', label:'ハンモック宿泊',type:'stay'},
+    {key:'st_h2a', label:'ハンモック宿泊',type:'stay'},
+    {key:'st_h2b', label:'ハンモック宿泊',type:'stay'},
+    {key:'walk',   label:'空中ウォーク',  type:'day'},
+    {key:'tree',   label:'ツリー昼',      type:'day'},
+    {key:'bbq',    label:'BBQ',           type:'day'},
+  ];
+  // 表示用にグループ集約
+  const DISP_ORDER=[
+    {label:'ツリー宿泊', keys:['st_th'],              color:'#7a1030'},
+    {label:'ドーム',     keys:['st_dm','st_dt','st_dg'],color:'#9b3060'},
+    {label:'テント',     keys:['st_t1','st_t2','st_t3'],color:'#c05080'},
+    {label:'ハンモック', keys:['st_h1a','st_h1b','st_h2a','st_h2b'],color:'#d07090'},
+    {label:'空中ウォーク',keys:['walk'],              color:'#224466'},
+    {label:'ツリー昼',   keys:['tree'],               color:'#633806'},
+    {label:'BBQ',        keys:['bbq'],                color:'#555'},
+  ];
+
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=getDateStr(calYear,calMonth,d);
+    const isToday=dateStr===todayStr;
+    const isSel=dateStr===calSelDate;
+    const dow=new Date(calYear,calMonth,d).getDay();
+
+    // 件数集計
+    const counts={};
+    reservations.filter(r=>r.date===dateStr).forEach(r=>{counts[r.facility]=(counts[r.facility]||0)+1;});
+    stays.filter(s=>s.checkin<=dateStr&&s.checkout>dateStr).forEach(s=>{counts[s.facility]=(counts[s.facility]||0)+1;});
+
+    const cell=document.createElement('div');
+    cell.style.cssText='border-radius:6px;padding:3px 2px;cursor:pointer;border:1px solid '+(isSel?'#d06080':'#eee')+';background:'+(isSel?'#fff0f4':isToday?'#f5f5f5':'#fff')+';min-height:80px;vertical-align:top';
+    // 日付
+    const dayDiv=document.createElement('div');
+    dayDiv.style.cssText='font-size:13px;font-weight:600;text-align:center;padding:2px 0;color:'+(isToday?'#fff':dow===0?'#c00':dow===6?'#226':'#111');
+    if(isToday){dayDiv.style.cssText+='background:#111;border-radius:50%;width:22px;height:22px;margin:0 auto;display:flex;align-items:center;justify-content:center';}
+    dayDiv.textContent=d;
+    cell.appendChild(dayDiv);
+    // 施設ごとの件数
+    DISP_ORDER.forEach(g=>{
+      const cnt=g.keys.reduce((s,k)=>s+(counts[k]||0),0);
+      if(cnt===0)return;
+      const row=document.createElement('div');
+      row.style.cssText='font-size:10px;line-height:1.4;color:'+g.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+      row.textContent=g.label+' '+cnt;
+      cell.appendChild(row);
+    });
+    cell.onclick=()=>{
+      calSelDate=dateStr;
+      const hasCnt=Object.values(counts).some(v=>v>0);
+      if(hasCnt){
+        dateFilter=dateStr;
+        switchTab('list',true);
+      }else{
+        renderCal();renderCalDetail(dateStr);
+      }
+    };
+    grid.appendChild(cell);
+  }
+  if(calSelDate)renderCalDetail(calSelDate);
+}
+
+function renderCalDetail(dateStr){
+  const c=document.getElementById('cal-detail');
+  const{days:dl,stayList:sl}=getDayReservations(dateStr);
+  if(!dl.length&&!sl.length){c.innerHTML='<div style="font-size:13px;color:#bbb;text-align:center;padding:1rem">この日の予約はありません</div>';return;}
+  c.innerHTML='<div style="font-size:13px;font-weight:600;margin-bottom:8px">'+fmtDate(dateStr)+'の予約</div>';
+  sl.forEach(s=>{
+    const fac=getSFac(s.facility);if(!fac)return;
+    const totalPpl=s.totalPpl||(s.ninzu+(parseInt(s.child)||0));
+    const div=document.createElement('div');div.className='card';div.style.marginBottom='8px';
+    div.innerHTML=
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'+
+        '<span class="badge badge-stay">宿泊</span>'+
+        '<span style="font-size:13px;font-weight:600;color:#7a1030">'+fac.label+'</span>'+
+        (s.changed?'<span class="badge-changed">変更済み</span>':'')+
+      '</div>'+
+      '<div style="font-size:13px">'+fmtDate(s.checkin)+' 〜 '+fmtDate(s.checkout)+'（'+s.nights+'泊）</div>'+
+      (s.name?'<div style="font-size:14px;font-weight:500;margin-top:2px">'+s.name+'</div>':'')+
+      '<div style="font-size:13px;color:#666">'+totalPpl+'名'+(parseInt(s.child)>0?' 子供(3歳未満)'+s.child+'人':'')+((s.petCount||0)>0?' ペット'+s.petCount+'匹':'')+'</div>';
+    c.appendChild(div);
+  });
+  dl.forEach(r=>{
+    const fac=getFac(r.facility);if(!fac)return;
+    const end=getEnd(r.startTime,r.course,r.facility);
+    const div=document.createElement('div');div.className='card';div.style.marginBottom='8px';
+    div.innerHTML=
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'+
+        '<span class="badge '+fac.badgeCls+'">'+fac.label+'</span>'+
+      '</div>'+
+      '<div style="font-size:18px;font-weight:600">'+r.startTime+' 〜 '+end+'</div>'+
+      (r.name?'<div style="font-size:14px;font-weight:500;margin-top:2px">'+r.name+'</div>':'')+
+      (r.ninzu?'<div style="font-size:13px;color:#666">'+r.ninzu+'名</div>':'');
+    c.appendChild(div);
+  });
+}
+
+// 起動
+renderFltTabs();renderList();
+
+// カードボタンのイベントデリゲーション（起動後に登録）
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('[data-act]');if(!btn)return;
+  const act=btn.dataset.act,id=btn.dataset.id;
+  if(act==='toggleDD')toggleDD(id);
+  else if(act==='toggleSD')toggleSD(id);
+  else if(act==='markChanged')markChanged(id);
+  else if(act==='markChangedDay')markChangedDay(id);
+  else if(act==='openEdit')openEdit(id);
+  else if(act==='openEditStay')openEditStay(id);
+  else if(act==='delDay')delDay(id);
+  else if(act==='delStay')delStay(id);
+});
+
+// PWA無効化
+</script>
+</body>
+</html>
